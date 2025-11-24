@@ -1,0 +1,1 @@
+This is a new test file created after the fix to verify sizeBytes is now captured correctly during upload.

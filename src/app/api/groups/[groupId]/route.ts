@@ -34,3 +34,4 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: "Failed to update group" }, { status: 500 });
   }
 }
+

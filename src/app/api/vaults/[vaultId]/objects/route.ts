@@ -90,7 +90,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     console.log(
       `Merged objects with local DB data:`,
-      objects.map((o) => ({
+      objects.map((o: typeof objects[number]) => ({
         id: o.id,
         filename: o.filename,
         size: o.size,

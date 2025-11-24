@@ -4,7 +4,7 @@
  */
 import { db } from "@/db";
 import { groups, userGroups } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import type { Permissions } from "./permissions";
 
@@ -96,7 +96,7 @@ export async function addUserToGroup(userId: string, groupId: string) {
  * Remove user from group
  */
 export async function removeUserFromGroup(userId: string, groupId: string) {
-  await db.delete(userGroups).where(eq(userGroups.userId, userId)).where(eq(userGroups.groupId, groupId));
+  await db.delete(userGroups).where(and(eq(userGroups.userId, userId), eq(userGroups.groupId, groupId)));
 }
 
 /**

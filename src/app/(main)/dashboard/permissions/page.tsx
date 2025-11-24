@@ -54,26 +54,33 @@ export default function PermissionsPage() {
 
   const togglePermission = (service: string, permission: string, groupId?: string) => {
     if (groupId) {
-      // Toggle group permission
-      setGroupPerms((prev) => ({
-        ...prev,
-        [groupId]: {
-          ...prev[groupId],
-          [service]: {
-            ...prev[groupId][service as keyof Permissions],
-            [permission]: !prev[groupId][service as keyof Permissions][permission as any],
+      setGroupPerms((prev) => {
+        const serviceKey = service as keyof Permissions;
+        const group = prev[groupId] || ({} as Permissions);
+        const currentPermissions = (group[serviceKey] as Record<string, boolean>) || {};
+        return {
+          ...prev,
+          [groupId]: {
+            ...group,
+            [service]: {
+              ...currentPermissions,
+              [permission]: !currentPermissions[permission],
+            },
           },
-        },
-      }));
+        };
+      });
     } else {
-      // Toggle user permission
-      setUserPerms((prev) => ({
-        ...prev,
-        [service]: {
-          ...prev[service as keyof Permissions],
-          [permission]: !prev[service as keyof Permissions][permission as any],
-        },
-      }));
+      setUserPerms((prev) => {
+        const serviceKey = service as keyof Permissions;
+        const currentPermissions = (prev[serviceKey] as Record<string, boolean>) || {};
+        return {
+          ...prev,
+          [service]: {
+            ...currentPermissions,
+            [permission]: !currentPermissions[permission],
+          },
+        };
+      });
     }
     setHasChanges(true);
   };

@@ -4,12 +4,12 @@ Open-source legal practice management platform with AI superpowers. Built with N
 
 ## Setup
 
-```bash
+   ```bash
 # Install dependencies
 bun install
 
 # Configure environment
-cp .env.example .env.local
+   cp .env.example .env.local
 # Add your CASE_API_KEY from console.case.dev
 # Generate NEXTAUTH_SECRET with: openssl rand -base64 32
 
@@ -23,8 +23,8 @@ Open [http://localhost:3000](http://localhost:3000) and create your admin accoun
 
 ```env
 # Case.dev API
-CASE_API_KEY=sk_case_your_api_key_here
-CASE_API_URL=https://api.case.dev
+   CASE_API_KEY=sk_case_your_api_key_here
+   CASE_API_URL=https://api.case.dev
 
 # NextAuth
 NEXTAUTH_SECRET=your_generated_secret

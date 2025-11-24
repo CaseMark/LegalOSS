@@ -302,9 +302,7 @@ export default function ChatPage() {
                     <Card
                       className="hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => {
-                        handleInputChange({
-                          target: { value: "Explain the burden of proof in civil vs criminal cases" },
-                        } as any);
+                        setInput("Explain the burden of proof in civil vs criminal cases");
                         setTimeout(() => {
                           const form = document.querySelector("form");
                           form?.requestSubmit();
@@ -320,9 +318,7 @@ export default function ChatPage() {
                     <Card
                       className="hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => {
-                        handleInputChange({
-                          target: { value: "What are the key elements of medical malpractice?" },
-                        } as any);
+                        setInput("What are the key elements of medical malpractice?");
                         setTimeout(() => {
                           const form = document.querySelector("form");
                           form?.requestSubmit();

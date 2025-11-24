@@ -231,3 +231,4 @@ export function CreateGroupDialog({ open, onOpenChange, onSuccess }: CreateGroup
     </Dialog>
   );
 }
+

@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { users } from "@/data/users";
 import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 import {
@@ -19,10 +18,10 @@ import {
   type NavbarStyle,
 } from "@/types/preferences/layout";
 
-import { UserMenu } from "./_components/sidebar/user-menu";
 import { LayoutControls } from "./_components/sidebar/layout-controls";
 import { SearchDialog } from "./_components/sidebar/search-dialog";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
+import { UserMenu } from "./_components/sidebar/user-menu";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const cookieStore = await cookies();
@@ -48,6 +47,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
       <SidebarInset
         data-content-layout={contentLayout}
         className={cn(
+          "flex min-h-0 flex-1 flex-col overflow-hidden",
           "data-[content-layout=centered]:!mx-auto data-[content-layout=centered]:max-w-screen-2xl",
           // Adds right margin for inset sidebar in centered layout up to 113rem.
           // On wider screens with collapsed sidebar, removes margin and sets margin auto for alignment.
@@ -75,7 +75,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             </div>
           </div>
         </header>
-        <div className="h-full p-4 md:p-6">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

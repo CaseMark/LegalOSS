@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 
 interface CaseWithAccess {
   id: string;
-  visibility: string;
+  visibility: string | null;
   allowedGroupIds: string | null;
   allowedUserIds: string | null;
   userId: string; // Creator
@@ -29,12 +29,14 @@ export async function canAccessCase(userId: string, userRole: string, caseData: 
   }
 
   // Check visibility setting
-  if (caseData.visibility === "organization") {
+  const visibility = caseData.visibility ?? "private";
+
+  if (visibility === "organization") {
     // All users in org can view
     return true;
   }
 
-  if (caseData.visibility === "private") {
+  if (visibility === "private") {
     // Only creator and explicitly allowed users/groups
     const allowedUsers = caseData.allowedUserIds ? JSON.parse(caseData.allowedUserIds) : [];
 
@@ -57,7 +59,7 @@ export async function canAccessCase(userId: string, userRole: string, caseData: 
     return false;
   }
 
-  if (caseData.visibility === "team") {
+  if (visibility === "team") {
     // Check allowed groups
     const allowedGroups = caseData.allowedGroupIds ? JSON.parse(caseData.allowedGroupIds) : [];
 

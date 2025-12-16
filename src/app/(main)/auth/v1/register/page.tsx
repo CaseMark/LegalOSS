@@ -28,14 +28,25 @@ export default function RegisterV1() {
         </div>
       </div>
 
-      <div className="bg-primary hidden lg:block lg:w-1/3">
-        <div className="flex h-full flex-col items-center justify-center p-12 text-center">
+      <div className="relative hidden lg:block lg:w-1/3 overflow-hidden">
+        {/* Background Image - height-fixed to always show the memorial */}
+        <div 
+          className="absolute inset-0 bg-no-repeat bg-bottom"
+          style={{ 
+            backgroundImage: "url('/images/lincoln-memorial-night.jpg')",
+            backgroundSize: "auto 100%",
+          }}
+        />
+        {/* Subtle overlay for text readability */}
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Content */}
+        <div className="relative flex h-full flex-col items-center justify-center p-12 text-center">
           <div className="space-y-6">
-            <Landmark className="text-primary-foreground mx-auto size-12" />
+            <Landmark className="text-white mx-auto size-12" />
             <div className="space-y-2">
-              <h1 className="text-primary-foreground text-6xl font-medium">{APP_CONFIG.name}</h1>
-              <p className="text-primary-foreground/80 text-xl">Welcome!</p>
-              <p className="text-primary-foreground/70 text-sm">Start your Legal AI journey</p>
+              <h1 className="text-white text-6xl font-normal font-[family-name:var(--font-instrument-serif)] italic">{APP_CONFIG.name}</h1>
+              <p className="text-white/80 text-xl">Welcome!</p>
+              <p className="text-white/70 text-sm">Start your Legal AI journey</p>
             </div>
           </div>
         </div>

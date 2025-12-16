@@ -1,7 +1,5 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { db } from "@/db";
-import { vaults } from "@/db/schema";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";
 const CASE_API_KEY = process.env.CASE_API_KEY;
@@ -22,18 +20,31 @@ export const caseDevApiTools = {
     execute: async () => {
       console.log("[Tool] listVaults called");
 
-      // Query database directly (no auth needed in tool context)
-      const allVaults = await db.select().from(vaults);
+      if (!CASE_API_KEY) throw new Error("CASE_API_KEY not configured");
+
+      // Fetch directly from Case.dev API (endpoint is /vault singular)
+      const response = await fetch(`${CASE_API_URL}/vault`, {
+        headers: {
+          Authorization: `Bearer ${CASE_API_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to list vaults: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const allVaults = data.vaults || data;
 
       console.log("[Tool] Found vaults:", allVaults.length);
 
       return {
         totalVaults: allVaults.length,
-        vaults: allVaults.map((v) => ({
+        vaults: allVaults.map((v: any) => ({
           id: v.id,
           name: v.name,
           description: v.description,
-          createdAt: v.createdAt,
+          createdAt: v.createdAt || v.created_at,
         })),
       };
     },
@@ -437,6 +448,179 @@ export const caseDevApiTools = {
       };
     },
   }),
+
+  // ==================== WEB SEARCH ====================
+
+  webSearch: tool({
+    description:
+      "Search the web for information. Returns ranked results with titles, URLs, and snippets. Use this for finding current information, legal precedents, news, or research.",
+    inputSchema: z.object({
+      query: z.string().describe("Search query (e.g., 'HIPAA compliance requirements 2024')"),
+      numResults: z.number().default(10).describe("Number of results to return (max 100)"),
+      includeDomains: z
+        .array(z.string())
+        .optional()
+        .describe("Only include results from these domains (e.g., ['law.cornell.edu', 'findlaw.com'])"),
+      excludeDomains: z
+        .array(z.string())
+        .optional()
+        .describe("Exclude results from these domains (e.g., ['reddit.com', 'twitter.com'])"),
+      startPublishedDate: z.string().optional().describe("Only include results published after this date (ISO format)"),
+    }),
+    execute: async ({ query, numResults, includeDomains, excludeDomains, startPublishedDate }) => {
+      console.log("[Tool] webSearch called:", { query, numResults });
+
+      if (!CASE_API_KEY) throw new Error("CASE_API_KEY not configured");
+
+      const response = await fetch(`${CASE_API_URL}/search/v1/search`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${CASE_API_KEY}`,
+        },
+        body: JSON.stringify({
+          query,
+          numResults: numResults || 10,
+          type: "auto",
+          includeDomains,
+          excludeDomains,
+          startPublishedDate,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Web search failed: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      return {
+        query,
+        resultsFound: data.results?.length || 0,
+        results: (data.results || []).map((r: any) => ({
+          title: r.title,
+          url: r.url,
+          publishedDate: r.publishedDate,
+          text: r.text?.substring(0, 500), // Truncate for token efficiency
+        })),
+      };
+    },
+  }),
+
+  webAnswer: tool({
+    description:
+      "Get an AI-generated answer to a question using web search. Synthesizes information from multiple sources into a cohesive answer with citations. Best for questions that need current information.",
+    inputSchema: z.object({
+      query: z.string().describe("Question to answer (e.g., 'What are the key changes in California employment law 2024?')"),
+      numResults: z.number().default(10).describe("Number of web results to synthesize (more = better but slower)"),
+    }),
+    execute: async ({ query, numResults }) => {
+      console.log("[Tool] webAnswer called:", { query });
+
+      if (!CASE_API_KEY) throw new Error("CASE_API_KEY not configured");
+
+      const response = await fetch(`${CASE_API_URL}/search/v1/answer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${CASE_API_KEY}`,
+        },
+        body: JSON.stringify({
+          query,
+          numResults: numResults || 10,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Web answer failed: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      return {
+        query,
+        answer: data.answer || data.content,
+        sources: data.sources || data.results?.map((r: any) => ({ title: r.title, url: r.url })),
+      };
+    },
+  }),
+
+  webResearch: tool({
+    description:
+      "Run deep, multi-step research on a complex topic. Takes longer (1-5 minutes) but produces comprehensive reports with multiple searches and source synthesis. Best for complex legal research questions.",
+    inputSchema: z.object({
+      instructions: z.string().describe("Research instructions (e.g., 'Research recent developments in non-compete agreement enforceability across US states')"),
+      model: z
+        .enum(["exa-research-fast", "exa-research", "exa-research-pro"])
+        .default("exa-research")
+        .describe("Research depth: fast (~30s), standard (~2min), pro (~5min, most comprehensive)"),
+    }),
+    execute: async ({ instructions, model }) => {
+      console.log("[Tool] webResearch called:", { instructions, model });
+
+      if (!CASE_API_KEY) throw new Error("CASE_API_KEY not configured");
+
+      // Start the research
+      const startResponse = await fetch(`${CASE_API_URL}/search/v1/research`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${CASE_API_KEY}`,
+        },
+        body: JSON.stringify({
+          instructions,
+          model: model || "exa-research",
+        }),
+      });
+
+      if (!startResponse.ok) {
+        const error = await startResponse.text();
+        throw new Error(`Research failed to start: ${startResponse.status} - ${error}`);
+      }
+
+      const startData = await startResponse.json();
+      const researchId = startData.researchId;
+
+      // Poll for completion (max 5 minutes)
+      const maxAttempts = 60;
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
+
+        const statusResponse = await fetch(`${CASE_API_URL}/search/v1/research/${researchId}`, {
+          headers: {
+            Authorization: `Bearer ${CASE_API_KEY}`,
+          },
+        });
+
+        if (!statusResponse.ok) continue;
+
+        const statusData = await statusResponse.json();
+
+        if (statusData.status === "completed") {
+          return {
+            researchId,
+            status: "completed",
+            report: statusData.output?.content,
+            sources: statusData.sources,
+            metadata: {
+              pagesAnalyzed: statusData.costDollars?.numPages,
+              searchesPerformed: statusData.costDollars?.numSearches,
+            },
+          };
+        } else if (statusData.status === "failed" || statusData.status === "canceled") {
+          throw new Error(`Research ${statusData.status}`);
+        }
+      }
+
+      return {
+        researchId,
+        status: "timeout",
+        message: "Research is still running. Check back later with the researchId.",
+      };
+    },
+  }),
+
+  // ==================== WORKFLOWS ====================
 
   executeWorkflow: tool({
     description:

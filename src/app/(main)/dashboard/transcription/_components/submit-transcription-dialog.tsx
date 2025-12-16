@@ -35,6 +35,9 @@ const formSchema = z
     speakerLabels: z.boolean().default(true),
     punctuate: z.boolean().default(true),
     formatText: z.boolean().default(true),
+    autoChapters: z.boolean().default(false),
+    summarization: z.boolean().default(false),
+    redactPii: z.boolean().default(false),
     wordBoost: z.string().optional(),
   })
   .refine(
@@ -69,6 +72,9 @@ export function SubmitTranscriptionDialog({ open, onOpenChange, onSuccess }: Sub
       speakerLabels: true,
       punctuate: true,
       formatText: true,
+      autoChapters: false,
+      summarization: false,
+      redactPii: false,
       wordBoost: "",
     },
   });
@@ -107,6 +113,9 @@ export function SubmitTranscriptionDialog({ open, onOpenChange, onSuccess }: Sub
               speakerLabels: data.speakerLabels,
               punctuate: data.punctuate,
               formatText: data.formatText,
+              autoChapters: data.autoChapters,
+              summarization: data.summarization,
+              redactPii: data.redactPii,
               wordBoost,
             }
           : {
@@ -116,6 +125,9 @@ export function SubmitTranscriptionDialog({ open, onOpenChange, onSuccess }: Sub
               speakerLabels: data.speakerLabels,
               punctuate: data.punctuate,
               formatText: data.formatText,
+              autoChapters: data.autoChapters,
+              summarization: data.summarization,
+              redactPii: data.redactPii,
               wordBoost,
             };
 
@@ -374,6 +386,60 @@ export function SubmitTranscriptionDialog({ open, onOpenChange, onSuccess }: Sub
                       <FormLabel className="text-foreground cursor-pointer font-normal">Smart formatting</FormLabel>
                       <FormDescription className="text-muted-foreground">
                         Capitalize sentences, format numbers and dates
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="autoChapters"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-foreground cursor-pointer font-normal">Auto chapters</FormLabel>
+                      <FormDescription className="text-muted-foreground">
+                        Detect topic changes and create chapter summaries
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="summarization"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-foreground cursor-pointer font-normal">AI summary</FormLabel>
+                      <FormDescription className="text-muted-foreground">
+                        Generate an AI summary of the transcript
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="redactPii"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-foreground cursor-pointer font-normal">Redact PII</FormLabel>
+                      <FormDescription className="text-muted-foreground">
+                        Auto-redact personal information (SSN, phone numbers, etc.)
                       </FormDescription>
                     </div>
                   </FormItem>

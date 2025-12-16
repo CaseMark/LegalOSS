@@ -168,4 +168,11 @@ html {
 .disable-transitions * {
   transition: none !important;
 }
+
+/* Toast description visibility fix for light mode */
+[data-sonner-toast] [data-description] {
+  color: var(--foreground) !important;
+  opacity: 0.7 !important;
+}
+
 @source "../node_modules/streamdown/dist/index.js";

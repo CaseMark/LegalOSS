@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { vaults } from "@/db/schema";
-import { desc } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth/session";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";
 const CASE_API_KEY = process.env.CASE_API_KEY;
 
 /**
- * GET /api/vaults - List all vaults from local database
+ * GET /api/vaults - List all vaults directly from Case.dev
+ * Case.dev is the source of truth for vault data
  */
 export async function GET() {
   try {
@@ -18,10 +16,20 @@ export async function GET() {
       return NextResponse.json({ error: "CASE_API_KEY not configured" }, { status: 500 });
     }
 
-    // Fetch from local database
-    const allVaults = await db.select().from(vaults).orderBy(desc(vaults.createdAt));
+    // Fetch directly from Case.dev API (endpoint is /vault singular)
+    const response = await fetch(`${CASE_API_URL}/vault`, {
+      headers: {
+        Authorization: `Bearer ${CASE_API_KEY}`,
+      },
+    });
 
-    return NextResponse.json({ vaults: allVaults });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Unknown error" }));
+      return NextResponse.json({ error: error.message || "Failed to list vaults" }, { status: response.status });
+    }
+
+    const data = await response.json();
+    return NextResponse.json({ vaults: data.vaults || data });
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message?.includes("Permission denied")) {
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -32,7 +40,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/vaults - Create a new vault in Case.dev AND save to local DB
+ * POST /api/vaults - Create a new vault in Case.dev
  */
 export async function POST(request: NextRequest) {
   try {
@@ -41,10 +49,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Require authentication and permission
-    const user = await requirePermission("vaults.create");
+    await requirePermission("vaults.create");
 
     const body = await request.json();
-    const { name, description, region = "us-east-1", enableGraph = false } = body;
+    const { name, description, enableGraph = false } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Vault name is required" }, { status: 400 });
@@ -66,19 +74,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-
-    // Save to local database
-    const now = new Date();
-    await db.insert(vaults).values({
-      id: data.id,
-      userId: user.id,
-      name,
-      description: description || null,
-      region,
-      createdAt: now,
-      updatedAt: now,
-    });
-
     return NextResponse.json(data, { status: 201 });
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message?.includes("Permission denied")) {

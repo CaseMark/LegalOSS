@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Instrument_Serif } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { APP_CONFIG } from "@/config/app-config";
@@ -14,6 +14,11 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+const instrumentSerif = Instrument_Serif({ 
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+});
 
 export const metadata: Metadata = {
   title: APP_CONFIG.meta.title,
@@ -31,7 +36,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-theme-preset={themePreset}
       suppressHydrationWarning
     >
-      <body className={`${inter.className} flex h-screen flex-col overflow-hidden antialiased`} suppressHydrationWarning>
+      <body className={`${inter.className} ${instrumentSerif.variable} flex h-screen flex-col overflow-hidden antialiased`} suppressHydrationWarning>
         <Providers>
           <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>

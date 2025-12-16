@@ -330,11 +330,6 @@ export function LiveTranscription() {
                 <p>• Click stop when finished</p>
                 <p>• Download the complete transcript</p>
               </div>
-              <div className="mt-2 rounded border border-yellow-500/20 bg-yellow-500/10 p-2">
-                <p className="text-xs font-medium text-yellow-700 dark:text-yellow-400">
-                  ⚠️ Note: WebSocket streaming requires Case.dev API to be configured with WebSocket support in Vercel.
-                </p>
-              </div>
             </AlertDescription>
           </Alert>
         </CardContent>

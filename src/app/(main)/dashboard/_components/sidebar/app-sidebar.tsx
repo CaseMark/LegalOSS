@@ -30,7 +30,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link href="/dashboard/default">
                 <Landmark />
-                <span className="text-base font-semibold">{APP_CONFIG.name}</span>
+                <span 
+                  className="text-lg font-normal italic font-[family-name:var(--font-instrument-serif)]"
+                  style={{ overflow: 'visible', textOverflow: 'clip' }}
+                >
+                  {APP_CONFIG.name}
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

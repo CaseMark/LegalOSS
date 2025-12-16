@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
-import { createUser, getUserByEmail } from "@/lib/auth/utils";
+import { getUserByEmail } from "@/lib/auth/utils";
+import { getDb } from "@/db";
+import { users } from "@/db/schema";
+import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcryptjs";
+
+const SALT_ROUNDS = 10;
 
 /**
  * POST /api/users/add - Create new user (admin only)
@@ -27,20 +33,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email already in use" }, { status: 400 });
     }
 
-    // Note: We bypass the "first user = admin" logic here
-    // Admin is explicitly setting the role
-    const { hashPassword } = await import("@/lib/auth/utils");
-    const { v4: uuidv4 } = await import("uuid");
-    const { db } = await import("@/db");
-    const { users } = await import("@/db/schema");
-
-    const passwordHash = await hashPassword(password);
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const userId = uuidv4();
 
+    // Create user directly (admin-initiated, bypasses first-user logic)
+    const db = await getDb();
     await db.insert(users).values({
       id: userId,
-      email: email.toLowerCase(),
-      name,
+      email: email.toLowerCase().trim(),
+      name: name.trim(),
       passwordHash,
       role,
       createdAt: new Date(),
@@ -50,8 +52,8 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         id: userId,
-        email,
-        name,
+        email: email.toLowerCase().trim(),
+        name: name.trim(),
         role,
       },
     });

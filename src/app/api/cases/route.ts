@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { cases } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { getAccessibleCases, generateCaseNumber } from "@/lib/case-management/access";
 import { v4 as uuidv4 } from "uuid";
-import { desc } from "drizzle-orm";
 
 /**
  * GET /api/cases - List cases user can access (group-scoped)
@@ -56,6 +55,7 @@ export async function POST(request: NextRequest) {
     const caseId = uuidv4();
     const caseNumber = await generateCaseNumber();
 
+    const db = await getDb();
     await db.insert(cases).values({
       id: caseId,
       userId: user.id,

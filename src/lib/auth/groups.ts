@@ -2,7 +2,7 @@
  * Group/Team Management - Open WebUI Pattern
  * Custom groups with permission matrices
  */
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { groups, userGroups } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +13,7 @@ import type { Permissions } from "./permissions";
  * Most permissive wins (True > False)
  */
 export async function getUserPermissions(userId: string): Promise<Permissions | null> {
+  const db = await getDb();
   // Get all groups user is member of
   const userGroupMemberships = await db.select().from(userGroups).where(eq(userGroups.userId, userId));
 
@@ -67,6 +68,7 @@ export async function createGroup(data: {
   description?: string;
   permissions: Permissions;
 }): Promise<string> {
+  const db = await getDb();
   const groupId = uuidv4();
 
   await db.insert(groups).values({
@@ -85,6 +87,7 @@ export async function createGroup(data: {
  * Add user to group
  */
 export async function addUserToGroup(userId: string, groupId: string) {
+  const db = await getDb();
   await db.insert(userGroups).values({
     userId,
     groupId,
@@ -96,6 +99,7 @@ export async function addUserToGroup(userId: string, groupId: string) {
  * Remove user from group
  */
 export async function removeUserFromGroup(userId: string, groupId: string) {
+  const db = await getDb();
   await db.delete(userGroups).where(and(eq(userGroups.userId, userId), eq(userGroups.groupId, groupId)));
 }
 
@@ -103,6 +107,7 @@ export async function removeUserFromGroup(userId: string, groupId: string) {
  * Get all groups
  */
 export async function getAllGroups() {
+  const db = await getDb();
   return db.select().from(groups);
 }
 
@@ -110,6 +115,7 @@ export async function getAllGroups() {
  * Get groups a user belongs to
  */
 export async function getUserGroups(userId: string) {
+  const db = await getDb();
   const memberships = await db.select().from(userGroups).where(eq(userGroups.userId, userId));
 
   const groupIds = memberships.map((m) => m.groupId);

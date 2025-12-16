@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
 import { desc } from "drizzle-orm";
@@ -11,6 +11,7 @@ export async function GET() {
   try {
     await requireAdmin();
 
+    const db = await getDb();
     const allUsers = await db
       .select({
         id: users.id,

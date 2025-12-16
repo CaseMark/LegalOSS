@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { groups } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
 import { eq } from "drizzle-orm";
@@ -17,6 +17,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Permissions are required" }, { status: 400 });
     }
 
+    const db = await getDb();
     await db
       .update(groups)
       .set({
@@ -34,4 +35,3 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: "Failed to update group" }, { status: 500 });
   }
 }
-

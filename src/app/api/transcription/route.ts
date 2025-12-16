@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { transcriptionJobs } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth/session";
@@ -14,6 +14,7 @@ export async function GET() {
   try {
     await requirePermission("transcription.read");
 
+    const db = await getDb();
     const jobs = await db.select().from(transcriptionJobs).orderBy(desc(transcriptionJobs.createdAt));
     return NextResponse.json({ jobs });
   } catch (error: any) {
@@ -119,6 +120,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     // Save to local database
+    const db = await getDb();
     await db.insert(transcriptionJobs).values({
       id: data.id,
       userId: user.id,

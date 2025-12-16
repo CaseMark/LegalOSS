@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { cases, caseParties, caseEvents, caseTasks, caseDocuments, contacts } from "@/db/schema";
+import { getDb } from "@/db";
+import { cases, caseParties, caseEvents, caseTasks, caseDocuments } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { canAccessCase } from "@/lib/case-management/access";
 import { eq } from "drizzle-orm";
@@ -12,6 +12,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const user = await requireAuth();
     const { caseId } = await params;
+
+    const db = await getDb();
 
     // Get case
     const caseData = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);

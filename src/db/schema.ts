@@ -1,13 +1,14 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
 
 /**
  * Database schema for Legal AI Starter
+ * Uses PostgreSQL via pglite (WASM) for maximum compatibility
  * Includes: Auth, RBAC, Case.dev resource tracking
  */
 
 // ==================== AUTH & USERS ====================
 
-export const users = sqliteTable("auth_users", {
+export const users = pgTable("auth_users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
@@ -15,16 +16,16 @@ export const users = sqliteTable("auth_users", {
   role: text("role").notNull().default("user"), // admin, user, pending
   profileImageUrl: text("profile_image_url"),
   caseApiKey: text("case_api_key"), // User's personal Case.dev API key (optional)
-  lastActiveAt: integer("last_active_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  lastActiveAt: timestamp("last_active_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const settings = sqliteTable("settings", {
+export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(), // JSON string
 });
 
-export const activityLog = sqliteTable("activity_log", {
+export const activityLog = pgTable("activity_log", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id),
   service: text("service"), // vaults, ocr, transcription, chat, speak
@@ -33,33 +34,37 @@ export const activityLog = sqliteTable("activity_log", {
   resourceId: text("resource_id"),
   metadata: text("metadata"), // JSON
   ipAddress: text("ip_address"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // Groups (custom teams like "Paralegals", "Partners", etc.)
-export const groups = sqliteTable("groups", {
+export const groups = pgTable("groups", {
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(), // "Paralegals", "Partners", "Associates"
   description: text("description"),
   permissions: text("permissions").notNull(), // JSON - permission matrix
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // User-Group membership (many-to-many)
-export const userGroups = sqliteTable("user_groups", {
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  groupId: text("group_id")
-    .notNull()
-    .references(() => groups.id, { onDelete: "cascade" }),
-  addedAt: integer("added_at", { mode: "timestamp" }).notNull(),
-});
+export const userGroups = pgTable(
+  "user_groups",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    groupId: text("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.groupId] })],
+);
 
 // ==================== CASE MANAGEMENT ====================
 
-export const cases = sqliteTable("cases", {
+export const cases = pgTable("cases", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -74,9 +79,9 @@ export const cases = sqliteTable("cases", {
   officialCaseNumber: text("official_case_number"), // Court's case number
 
   // Important dates
-  dateOpened: integer("date_opened", { mode: "timestamp" }),
-  trialDate: integer("trial_date", { mode: "timestamp" }),
-  dateClosed: integer("date_closed", { mode: "timestamp" }),
+  dateOpened: timestamp("date_opened"),
+  trialDate: timestamp("trial_date"),
+  dateClosed: timestamp("date_closed"),
 
   estimatedValue: integer("estimated_value"),
   customFields: text("custom_fields"), // JSON
@@ -86,11 +91,11 @@ export const cases = sqliteTable("cases", {
   allowedGroupIds: text("allowed_group_ids"), // JSON array - groups that can view
   allowedUserIds: text("allowed_user_ids"), // JSON array - specific users
 
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const contacts = sqliteTable("contacts", {
+export const contacts = pgTable("contacts", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id), // Creator
   type: text("type").notNull(), // client, opposing_party, attorney, witness, expert, judge
@@ -107,29 +112,33 @@ export const contacts = sqliteTable("contacts", {
   specialization: text("specialization"), // For experts
 
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const caseParties = sqliteTable("case_parties", {
-  caseId: text("case_id")
-    .notNull()
-    .references(() => cases.id, { onDelete: "cascade" }),
-  contactId: text("contact_id")
-    .notNull()
-    .references(() => contacts.id, { onDelete: "cascade" }),
-  role: text("role").notNull(), // plaintiff, defendant, plaintiff_attorney, etc.
-  isPrimary: integer("is_primary", { mode: "boolean" }).default(false),
-  addedAt: integer("added_at", { mode: "timestamp" }).notNull(),
-});
+export const caseParties = pgTable(
+  "case_parties",
+  {
+    caseId: text("case_id")
+      .notNull()
+      .references(() => cases.id, { onDelete: "cascade" }),
+    contactId: text("contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    role: text("role").notNull(), // plaintiff, defendant, plaintiff_attorney, etc.
+    isPrimary: boolean("is_primary").default(false),
+    addedAt: timestamp("added_at").notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.caseId, table.contactId] })],
+);
 
-export const caseEvents = sqliteTable("case_events", {
+export const caseEvents = pgTable("case_events", {
   id: text("id").primaryKey(),
   caseId: text("case_id")
     .notNull()
     .references(() => cases.id, { onDelete: "cascade" }),
   userId: text("user_id").references(() => users.id), // Creator
 
-  eventDate: integer("event_date", { mode: "timestamp" }).notNull(),
+  eventDate: timestamp("event_date").notNull(),
   title: text("title").notNull(),
   description: text("description"),
   eventType: text("event_type"), // incident, filing, deposition, hearing, etc.
@@ -141,10 +150,10 @@ export const caseEvents = sqliteTable("case_events", {
 
   extractedBy: text("extracted_by").default("manual"), // manual, ai
 
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const caseTasks = sqliteTable("case_tasks", {
+export const caseTasks = pgTable("case_tasks", {
   id: text("id").primaryKey(),
   caseId: text("case_id")
     .notNull()
@@ -156,36 +165,40 @@ export const caseTasks = sqliteTable("case_tasks", {
 
   title: text("title").notNull(),
   description: text("description"),
-  dueDate: integer("due_date", { mode: "timestamp" }),
+  dueDate: timestamp("due_date"),
   priority: text("priority").default("medium"), // low, medium, high, urgent
   status: text("status").default("pending"), // pending, in_progress, completed, cancelled
   taskType: text("task_type"), // research, draft, review, file, etc.
 
-  completedAt: integer("completed_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const caseDocuments = sqliteTable("case_documents", {
-  caseId: text("case_id")
-    .notNull()
-    .references(() => cases.id, { onDelete: "cascade" }),
-  vaultId: text("vault_id").references(() => vaults.id),
-  objectId: text("object_id"), // Vault object ID
+export const caseDocuments = pgTable(
+  "case_documents",
+  {
+    caseId: text("case_id")
+      .notNull()
+      .references(() => cases.id, { onDelete: "cascade" }),
+    vaultId: text("vault_id").references(() => vaults.id),
+    objectId: text("object_id"), // Vault object ID
 
-  documentType: text("document_type"), // pleading, discovery, evidence, correspondence
-  description: text("description"),
-  filedDate: integer("filed_date", { mode: "timestamp" }),
-  linkedEventId: text("linked_event_id"), // Link to timeline event
+    documentType: text("document_type"), // pleading, discovery, evidence, correspondence
+    description: text("description"),
+    filedDate: timestamp("filed_date"),
+    linkedEventId: text("linked_event_id"), // Link to timeline event
 
-  ocrJobId: text("ocr_job_id"), // If processed with OCR
-  transcriptionJobId: text("transcription_job_id"), // If transcribed
+    ocrJobId: text("ocr_job_id"), // If processed with OCR
+    transcriptionJobId: text("transcription_job_id"), // If transcribed
 
-  addedAt: integer("added_at", { mode: "timestamp" }).notNull(),
-});
+    addedAt: timestamp("added_at").notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.caseId, table.vaultId, table.objectId] })],
+);
 
 // ==================== CASE.DEV RESOURCES ====================
 
-export const vaults = sqliteTable("vaults", {
+export const vaults = pgTable("vaults", {
   id: text("id").primaryKey(), // Case.dev vault ID
   userId: text("user_id")
     .references(() => users.id)
@@ -193,11 +206,11 @@ export const vaults = sqliteTable("vaults", {
   name: text("name").notNull(),
   description: text("description"),
   region: text("region"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const vaultObjects = sqliteTable("vault_objects", {
+export const vaultObjects = pgTable("vault_objects", {
   id: text("id").primaryKey(), // Case.dev object ID
   vaultId: text("vault_id")
     .notNull()
@@ -206,10 +219,10 @@ export const vaultObjects = sqliteTable("vault_objects", {
   contentType: text("content_type"),
   size: integer("size"), // bytes
   status: text("status").default("pending"), // pending, processing, processed, error
-  uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull(),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
 });
 
-export const ocrJobs = sqliteTable("ocr_jobs", {
+export const ocrJobs = pgTable("ocr_jobs", {
   id: text("id").primaryKey(), // Case.dev OCR job ID
   userId: text("user_id")
     .references(() => users.id)
@@ -229,11 +242,11 @@ export const ocrJobs = sqliteTable("ocr_jobs", {
   confidence: integer("confidence"), // 0-100
   textLength: integer("text_length"),
   error: text("error"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  completedAt: integer("completed_at", { mode: "timestamp" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
 });
 
-export const transcriptionJobs = sqliteTable("transcription_jobs", {
+export const transcriptionJobs = pgTable("transcription_jobs", {
   id: text("id").primaryKey(), // Case.dev transcription job ID
   userId: text("user_id")
     .references(() => users.id)
@@ -241,14 +254,14 @@ export const transcriptionJobs = sqliteTable("transcription_jobs", {
   filename: text("filename"),
   audioUrl: text("audio_url"),
   languageCode: text("language_code").default("en"),
-  speakerLabels: integer("speaker_labels", { mode: "boolean" }).default(false),
+  speakerLabels: boolean("speaker_labels").default(false),
   status: text("status").default("queued"), // queued, processing, completed, error
   audioDuration: integer("audio_duration"), // milliseconds
   confidence: integer("confidence"), // 0-100
   wordCount: integer("word_count"),
   error: text("error"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  completedAt: integer("completed_at", { mode: "timestamp" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
 });
 
 // Type exports

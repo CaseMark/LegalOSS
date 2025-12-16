@@ -2,7 +2,7 @@
  * Case Access Control - Group-scoped permissions
  * Following Open WebUI's access control pattern
  */
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { cases, userGroups } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -48,6 +48,7 @@ export async function canAccessCase(userId: string, userRole: string, caseData: 
     const allowedGroups = caseData.allowedGroupIds ? JSON.parse(caseData.allowedGroupIds) : [];
 
     if (allowedGroups.length > 0) {
+      const db = await getDb();
       const userGroupMemberships = await db.select().from(userGroups).where(eq(userGroups.userId, userId));
 
       const userGroupIds = userGroupMemberships.map((ug) => ug.groupId);
@@ -63,6 +64,7 @@ export async function canAccessCase(userId: string, userRole: string, caseData: 
     // Check allowed groups
     const allowedGroups = caseData.allowedGroupIds ? JSON.parse(caseData.allowedGroupIds) : [];
 
+    const db = await getDb();
     const userGroupMemberships = await db.select().from(userGroups).where(eq(userGroups.userId, userId));
 
     const userGroupIds = userGroupMemberships.map((ug) => ug.groupId);
@@ -77,6 +79,7 @@ export async function canAccessCase(userId: string, userRole: string, caseData: 
  * Filter cases user can access
  */
 export async function getAccessibleCases(userId: string, userRole: string) {
+  const db = await getDb();
   const allCases = await db.select().from(cases);
 
   if (userRole === "admin") {
@@ -98,6 +101,7 @@ export async function getAccessibleCases(userId: string, userRole: string) {
  * Generate next case number (auto-increment)
  */
 export async function generateCaseNumber(): Promise<string> {
+  const db = await getDb();
   const year = new Date().getFullYear();
   const existingCases = await db
     .select()

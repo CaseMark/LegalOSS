@@ -1,12 +1,12 @@
 # LegalOSS Setup
 
-## Development (2 steps)
+## Development
 
 ```bash
 npm install
 ```
 
-Edit `.env.development` and add your Case.dev API key:
+Add your Case.dev API key to `.env.development`:
 ```env
 CASE_API_KEY=your_key_here
 ```
@@ -15,9 +15,11 @@ CASE_API_KEY=your_key_here
 npm run dev
 ```
 
-Open http://localhost:3000 → **You're in.** No login required.
+Open http://localhost:3000 → **Done.** No `.env.local` needed.
 
-Get a Case.dev API key at https://case.dev
+> Next.js auto-loads `.env.development` in dev mode.
+
+Get a key at https://case.dev
 
 ---
 
@@ -25,16 +27,18 @@ Get a Case.dev API key at https://case.dev
 
 ```bash
 cp .env.prod.example .env.local
-# Edit .env.local - add CASE_API_KEY and generate AUTH_SECRET
+# Add your CASE_API_KEY and generate AUTH_SECRET
 npm run build && npm start
 ```
 
 ---
 
-## Environment Files
+## Files
 
-| File | Purpose | Needs Edit? |
-|------|---------|-------------|
-| `.env.development` | Dev config | Add `CASE_API_KEY` |
-| `.env.prod.example` | Prod template | Copy to `.env.local` |
-| `.env.local` | Your secrets | Never committed |
+| File | Loaded When | Committed |
+|------|-------------|-----------|
+| `.env.development` | `npm run dev` | ✅ Yes |
+| `.env.prod.example` | Template only | ✅ Yes |
+| `.env.local` | Always (overrides) | ❌ Never |
+
+**Do NOT create `.env.local` for development.** It's only needed for production secrets.

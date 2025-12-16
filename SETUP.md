@@ -1,171 +1,93 @@
 # LegalOSS Setup Guide
 
-## Quick Start (Development) - 2 Minutes
-
-### 1. Clone and Install
+## Quick Start (Development) - 30 Seconds
 
 ```bash
+# 1. Clone and install
 git clone https://github.com/CaseMark/LegalOSS.git
 cd LegalOSS
 npm install
-```
 
-### 2. Create `.env.local`
+# 2. Copy the dev env file
+cp .env.dev .env.local
 
-Create a file named `.env.local` in the project root:
+# 3. Add your Case.dev API key to .env.local
+# Get one at https://case.dev
 
-```env
-# ===========================================
-# DEVELOPMENT CONFIGURATION
-# Copy this exactly for dev mode to work
-# ===========================================
-
-# Dev Mode - enables pre-seeded admin user
-IS_DEV=true
-
-# NextAuth - required for authentication
-AUTH_SECRET=dev-secret-do-not-use-in-production-1234567890
-AUTH_TRUST_HOST=true
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=dev-secret-do-not-use-in-production-1234567890
-
-# Case.dev API - get your key at https://case.dev
-CASE_API_KEY=your_case_api_key_here
-CASE_API_URL=https://api.case.dev
-```
-
-### 3. Start Development Server
-
-```bash
+# 4. Start dev server
 npm run dev
+
+# 5. Open http://localhost:3000 and click Login
+# Credentials are pre-filled: admin-dev@case.dev / password
 ```
 
-### 4. Login (Zero Config!)
-
-1. Open http://localhost:3000
-2. You'll be redirected to the login page
-3. The form is **automatically pre-filled** with dev credentials
-4. Just click **"Login"** - that's it!
-
-**Dev Credentials (auto-filled):**
-| Field | Value |
-|-------|-------|
-| Email | `admin-dev@case.dev` |
-| Password | `password` |
+That's it! The only thing you need is a Case.dev API key.
 
 ---
 
-## How Dev Mode Works
+## How It Works
 
-When `IS_DEV=true`:
+When `IS_DEV=true` (set in `.env.dev`):
 
-1. **On first page load**, the login form calls `/api/auth/dev-credentials`
-2. **This triggers database seeding** - creates the dev admin user
-3. **Credentials are returned** and pre-filled in the form
-4. **You just click Login** - no signup required!
+1. **Database seeds automatically** with a dev admin user
+2. **Login form pre-fills** with dev credentials
+3. **Just click Login** - no signup required
 
-The seeding is **atomic and race-condition safe**:
-- Mutex lock prevents duplicate admin creation
-- Credentials endpoint waits for seeding to complete
-- Form won't show credentials until admin exists
+| Dev Credentials | |
+|-----------------|--------------------------|
+| Email           | `admin-dev@case.dev`     |
+| Password        | `password`               |
 
 ---
 
 ## Production Setup
 
-For production, create `.env.local` with:
+```bash
+# Copy the production template
+cp .env.prod.example .env.local
 
-```env
-# ===========================================
-# PRODUCTION CONFIGURATION
-# ===========================================
-
-# Production Mode - disables dev features
-IS_DEV=false
-
-# NextAuth - REQUIRED, generate a secure secret
-# Run: openssl rand -base64 32
-AUTH_SECRET=your_secure_production_secret_here
-AUTH_TRUST_HOST=true
-NEXTAUTH_URL=https://your-domain.com
-NEXTAUTH_SECRET=your_secure_production_secret_here
-
-# Case.dev API - REQUIRED
-CASE_API_KEY=your_production_api_key
-CASE_API_URL=https://api.case.dev
+# Edit .env.local and set:
+# - CASE_API_KEY (your production key)
+# - AUTH_SECRET (run: openssl rand -base64 32)
+# - NEXTAUTH_SECRET (same as AUTH_SECRET)
+# - NEXTAUTH_URL (your domain)
 ```
 
-In production:
+In production (`IS_DEV=false`):
 - No admin is pre-seeded
 - First user to register becomes admin
-- Login form is NOT pre-filled
-- Signup is disabled after first admin created
+- Signup disabled after first admin created
 
 ---
 
-## Environment Variables Reference
+## Environment Files
 
-| Variable | Required | Dev Default | Description |
-|----------|----------|-------------|-------------|
-| `IS_DEV` | No | `false` | Enable dev mode with pre-seeded admin |
-| `AUTH_SECRET` | Yes | - | NextAuth JWT signing secret |
-| `AUTH_TRUST_HOST` | Yes | - | Must be `true` for localhost |
-| `NEXTAUTH_URL` | Yes | - | Full URL of your app |
-| `NEXTAUTH_SECRET` | Yes | - | Same as AUTH_SECRET |
-| `CASE_API_KEY` | Yes | - | Your Case.dev API key |
-| `CASE_API_URL` | No | `https://api.case.dev` | Case.dev API endpoint |
+| File | Purpose | Committed? |
+|------|---------|------------|
+| `.env.dev` | Dev defaults, just add API key | ✅ Yes |
+| `.env.prod.example` | Production template | ✅ Yes |
+| `.env.local` | Your secrets (copied from above) | ❌ No |
 
 ---
 
 ## Database
 
-LegalOSS uses **PGlite** - PostgreSQL compiled to WebAssembly:
+Uses **PGlite** (PostgreSQL in WebAssembly):
+- Zero native dependencies
+- Works everywhere (Docker, sandboxes, any OS)
+- Data stored in `./data/pgdata/`
 
-- **Zero native dependencies** - no compilation required
-- **Works everywhere** - Linux, macOS, Windows, Docker, sandboxes
-- **Auto-initializes** - creates tables on first run
-- **Persists to disk** - data stored in `./data/pgdata/`
-
-To reset the database:
+Reset database:
 ```bash
-rm -rf data/pgdata
-npm run dev
+rm -rf data/pgdata && npm run dev
 ```
 
 ---
 
 ## Troubleshooting
 
-### "Login failed - Invalid email or password"
+**"Login failed"** - Refresh and wait 2-3 seconds, or reset the database.
 
-The database may not have seeded yet. Solutions:
-1. Refresh the page and wait 2-3 seconds before clicking Login
-2. Delete `data/pgdata/` and restart the server
-3. Check that `IS_DEV=true` is in your `.env.local`
+**"Configuration error"** - Check `.env.local` has all required vars from `.env.dev`.
 
-### "Configuration" error on login page
-
-Missing or invalid NextAuth config:
-1. Ensure `AUTH_SECRET` and `NEXTAUTH_SECRET` are set
-2. Ensure `AUTH_TRUST_HOST=true` is set
-3. Ensure `NEXTAUTH_URL=http://localhost:3000` matches your port
-
-### Server won't start
-
-1. Delete `node_modules` and `package-lock.json`
-2. Run `npm install` again
-3. Ensure Node.js 18+ is installed
-
----
-
-## Dev Credentials
-
-When `IS_DEV=true`, these credentials are auto-created and pre-filled:
-
-```
-Email:    admin-dev@case.dev
-Password: password
-Role:     admin
-```
-
-Defined in: `src/lib/auth/dev-seed.ts`
+**Port conflict** - Kill other Next.js processes: `pkill -f next`

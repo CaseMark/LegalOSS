@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -16,7 +19,18 @@ const FormSchema = z.object({
   remember: z.boolean().optional(),
 });
 
+interface DevCredentials {
+  isDevMode: boolean;
+  credentials: {
+    email: string;
+    password: string;
+  } | null;
+}
+
 export function LoginForm() {
+  const [isDevMode, setIsDevMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -26,7 +40,28 @@ export function LoginForm() {
     },
   });
 
+  // Check for dev mode and pre-fill credentials
+  useEffect(() => {
+    fetch("/api/auth/dev-credentials")
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data: DevCredentials | null) => {
+        if (data?.isDevMode && data.credentials) {
+          setIsDevMode(true);
+          form.setValue("email", data.credentials.email);
+          form.setValue("password", data.credentials.password);
+        }
+      })
+      .catch(() => {
+        // Silently fail - not in dev mode
+      });
+  }, [form]);
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    setIsLoading(true);
+
     try {
       // Use NextAuth signIn
       const { signIn } = await import("next-auth/react");
@@ -41,6 +76,7 @@ export function LoginForm() {
         toast.error("Login failed", {
           description: "Invalid email or password",
         });
+        setIsLoading(false);
         return;
       }
 
@@ -50,16 +86,23 @@ export function LoginForm() {
 
       // Redirect to dashboard
       window.location.href = "/dashboard/default";
-    } catch (error) {
+    } catch {
       toast.error("Login failed", {
         description: "An error occurred. Please try again.",
       });
+      setIsLoading(false);
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {isDevMode && (
+          <div className="bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-md border p-3 text-sm">
+            <strong>🔧 Dev Mode</strong> — Credentials pre-filled. Just click Login!
+          </div>
+        )}
+
         <FormField
           control={form.control}
           name="email"
@@ -67,7 +110,14 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...field} />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  disabled={isLoading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,6 +135,7 @@ export function LoginForm() {
                   type="password"
                   placeholder="••••••••"
                   autoComplete="current-password"
+                  disabled={isLoading}
                   {...field}
                 />
               </FormControl>
@@ -103,6 +154,7 @@ export function LoginForm() {
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   className="size-4"
+                  disabled={isLoading}
                 />
               </FormControl>
               <FormLabel htmlFor="login-remember" className="text-muted-foreground ml-1 text-sm font-medium">
@@ -111,8 +163,15 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
-          Login
+        <Button className="w-full" type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Logging in...
+            </>
+          ) : (
+            "Login"
+          )}
         </Button>
       </form>
     </Form>

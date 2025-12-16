@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { cases, caseTasks } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { canAccessCase } from "@/lib/case-management/access";
@@ -13,6 +13,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const user = await requireAuth();
     const { caseId } = await params;
+
+    const db = await getDb();
 
     // Check access
     const caseData = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
@@ -63,6 +65,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const user = await requireAuth();
     const { caseId } = await params;
     const { taskId, status } = await request.json();
+
+    const db = await getDb();
 
     // Check access
     const caseData = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { ocrJobs } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth/session";
@@ -14,6 +14,7 @@ export async function GET() {
   try {
     await requirePermission("ocr.read");
 
+    const db = await getDb();
     const jobs = await db.select().from(ocrJobs).orderBy(desc(ocrJobs.createdAt));
     return NextResponse.json({ jobs });
   } catch (error: any) {
@@ -125,6 +126,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     // Save to local database
+    const db = await getDb();
     await db.insert(ocrJobs).values({
       id: data.id,
       userId: user.id,

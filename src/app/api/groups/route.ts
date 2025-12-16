@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { groups } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
 import { createGroup, getAllGroups } from "@/lib/auth/groups";
-import { desc } from "drizzle-orm";
 
 /**
  * GET /api/groups - List all groups

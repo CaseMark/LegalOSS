@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
 import { eq } from "drizzle-orm";
@@ -22,6 +22,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Cannot change your own admin role" }, { status: 400 });
     }
 
+    const db = await getDb();
     await db.update(users).set({ role }).where(eq(users.id, userId));
 
     return NextResponse.json({ success: true, role });

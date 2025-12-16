@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { transcriptionJobs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth/session";
@@ -32,6 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const data = await response.json();
 
     // Update local database
+    const db = await getDb();
     await db
       .update(transcriptionJobs)
       .set({

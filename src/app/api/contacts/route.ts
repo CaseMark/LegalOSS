@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { contacts } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { v4 as uuidv4 } from "uuid";
@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     const contactId = uuidv4();
 
+    const db = await getDb();
     await db.insert(contacts).values({
       id: contactId,
       userId: user.id,

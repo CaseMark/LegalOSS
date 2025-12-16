@@ -1,4 +1,4 @@
-import { Search, Database, FileText, Zap, FolderLock, FolderPlus, GitBranch } from "lucide-react";
+import { Search, Database, FileText, Zap, FolderLock, FolderPlus, GitBranch, Globe, MessageSquare, BookOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface ToolOption {
@@ -95,6 +95,30 @@ export const caseDevApiToolOptions: ToolOption[] = [
     label: "Execute Workflow",
     description: "Kick off workflow execution on a document.",
     icon: Zap,
+    group: "caseDevApi",
+    defaultEnabled: true,
+  },
+  {
+    name: "webSearch",
+    label: "Web Search",
+    description: "Search the web for current information, news, and research.",
+    icon: Globe,
+    group: "caseDevApi",
+    defaultEnabled: true,
+  },
+  {
+    name: "webAnswer",
+    label: "Web Answer",
+    description: "Get AI-synthesized answers from web search with citations.",
+    icon: MessageSquare,
+    group: "caseDevApi",
+    defaultEnabled: true,
+  },
+  {
+    name: "webResearch",
+    label: "Deep Research",
+    description: "Run comprehensive multi-step research (1-5 min).",
+    icon: BookOpen,
     group: "caseDevApi",
     defaultEnabled: true,
   },

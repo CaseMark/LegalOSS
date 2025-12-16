@@ -1,67 +1,77 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import useSWR from "swr";
-import { FileText, ScanText, Mic, Clock, CheckCircle, XCircle, ArrowUpRight } from "lucide-react";
+import { useMemo } from "react";
+
 import Link from "next/link";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, ScanText, Mic, Clock, CheckCircle, XCircle, ArrowUpRight, LucideIcon } from "lucide-react";
+import useSWR from "swr";
+
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-interface Activity {
+interface Job {
   id: string;
-  type: "ocr" | "transcription" | "vault";
-  title: string;
+  filename?: string;
   status: string;
-  createdAt: Date;
-  link?: string;
+  createdAt: string;
 }
 
-export function ActivityLog() {
-  const [activities, setActivities] = useState<Activity[]>([]);
+interface Vault {
+  id: string;
+  name: string;
+  createdAt?: string;
+  created_at?: string;
+}
 
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
+
+export function ActivityLog() {
   const { data: ocrData } = useSWR("/api/ocr", fetcher, { refreshInterval: 5000 });
   const { data: transcriptionData } = useSWR("/api/transcription", fetcher, { refreshInterval: 5000 });
   const { data: vaultsData } = useSWR("/api/vaults", fetcher);
 
-  useEffect(() => {
-    const ocrJobs = (ocrData?.jobs || []).map((job: any) => ({
+  // Use useMemo instead of useState + useEffect to derive activities
+  const activities = useMemo(() => {
+    const ocrJobsRaw = ocrData?.jobs as Job[] | undefined;
+    const ocrJobs = (ocrJobsRaw ?? []).map((job) => ({
       id: job.id,
       type: "ocr" as const,
-      title: job.filename || "OCR Job",
+      title: job.filename ?? "OCR Job",
       status: job.status,
       createdAt: new Date(job.createdAt),
       link: `/dashboard/ocr`,
     }));
 
-    const transcriptionJobs = (transcriptionData?.jobs || []).map((job: any) => ({
+    const transcriptionJobsRaw = transcriptionData?.jobs as Job[] | undefined;
+    const transcriptionJobs = (transcriptionJobsRaw ?? []).map((job) => ({
       id: job.id,
       type: "transcription" as const,
-      title: job.filename || "Transcription Job",
+      title: job.filename ?? "Transcription Job",
       status: job.status,
       createdAt: new Date(job.createdAt),
       link: `/dashboard/transcription`,
     }));
 
-    const vaults = (vaultsData?.vaults || []).map((vault: any) => ({
+    const vaultsRaw = vaultsData?.vaults as Vault[] | undefined;
+    const vaults = (vaultsRaw ?? []).map((vault) => ({
       id: vault.id,
       type: "vault" as const,
       title: `Vault: ${vault.name}`,
       status: "active",
-      createdAt: new Date(vault.createdAt || vault.created_at),
+      createdAt: new Date(vault.createdAt ?? vault.created_at ?? "2024-01-01"),
       link: `/dashboard/vaults`,
     }));
 
     // Combine and sort by date (most recent first)
-    const combined = [...ocrJobs, ...transcriptionJobs, ...vaults]
+    return [...ocrJobs, ...transcriptionJobs, ...vaults]
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, 20); // Show last 20 activities
-
-    setActivities(combined);
   }, [ocrData, transcriptionData, vaultsData]);
 
   const getTypeIcon = (type: string) => {
@@ -78,7 +88,7 @@ export function ActivityLog() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; icon: any }> = {
+    const variants: Record<string, { variant: BadgeVariant; icon: LucideIcon }> = {
       completed: { variant: "default", icon: CheckCircle },
       processing: { variant: "secondary", icon: Clock },
       pending: { variant: "outline", icon: Clock },
@@ -88,7 +98,7 @@ export function ActivityLog() {
       active: { variant: "secondary", icon: CheckCircle },
     };
 
-    const config = variants[status] || variants.pending;
+    const config = variants[status] ?? variants.pending;
     const Icon = config.icon;
 
     return (
@@ -122,43 +132,45 @@ export function ActivityLog() {
             No activity yet. Start by uploading files to a vault or running an OCR job.
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-muted-foreground">Type</TableHead>
-                <TableHead className="text-muted-foreground">Activity</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
-                <TableHead className="text-muted-foreground">Created</TableHead>
-                <TableHead className="text-muted-foreground w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {activities.map((activity) => (
-                <TableRow key={activity.id} className="hover:bg-muted/50">
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="text-muted-foreground">{getTypeIcon(activity.type)}</div>
-                      <span className="text-foreground text-sm capitalize">{activity.type}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-foreground font-medium">{activity.title}</span>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(activity.status)}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{formatDate(activity.createdAt)}</TableCell>
-                  <TableCell>
-                    {activity.link && (
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={activity.link}>
-                          <ArrowUpRight className="size-4" />
-                        </Link>
-                      </Button>
-                    )}
-                  </TableCell>
+          <ScrollArea className="h-[400px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-muted-foreground">Type</TableHead>
+                  <TableHead className="text-muted-foreground">Activity</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Created</TableHead>
+                  <TableHead className="text-muted-foreground w-[100px]">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {activities.map((activity) => (
+                  <TableRow key={activity.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="text-muted-foreground">{getTypeIcon(activity.type)}</div>
+                        <span className="text-foreground text-sm capitalize">{activity.type}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-foreground font-medium">{activity.title}</span>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(activity.status)}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{formatDate(activity.createdAt)}</TableCell>
+                    <TableCell>
+                      {activity.link && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={activity.link}>
+                            <ArrowUpRight className="size-4" />
+                          </Link>
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>

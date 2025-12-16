@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVault, useVaultObjects } from "@/lib/hooks/use-vaults";
 
+import { FileDetailsDialog } from "./file-details-dialog";
 import { UploadFileDialog } from "./upload-file-dialog";
 import { SearchDialog } from "./search-dialog";
 
@@ -37,13 +38,18 @@ interface VaultFile {
   contentType: string;
   chunkCount?: number | null;
   vectorCount?: number | null;
+  pageCount?: number | null;
+  textLength?: number | null;
   ingestionStatus?: string | null;
+  ingestionCompletedAt?: string | null;
 }
 
 export function VaultDetails({ vaultId, onBack }: VaultDetailsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showSearchDialog, setShowSearchDialog] = useState(false);
+  const [showFileDetails, setShowFileDetails] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<VaultFile | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isIngesting, setIsIngesting] = useState(false);
 
@@ -91,7 +97,10 @@ export function VaultDetails({ vaultId, onBack }: VaultDetailsProps) {
     contentType: obj.contentType || "application/octet-stream",
     chunkCount: obj.chunkCount,
     vectorCount: obj.vectorCount,
+    pageCount: obj.pageCount,
+    textLength: obj.textLength,
     ingestionStatus: obj.ingestionStatus, // Direct from Case.dev API
+    ingestionCompletedAt: obj.ingestionCompletedAt,
   }));
 
   // Calculate total storage from files
@@ -152,9 +161,22 @@ export function VaultDetails({ vaultId, onBack }: VaultDetailsProps) {
           successCount++;
           console.log(`✓ Triggered ingestion for: ${file.filename} (GraphRAG: ${enableGraphRAG})`);
         } else {
-          const error = await response.json();
+          const errorText = await response.text().catch(() => "");
+          let errorMessage = "Unknown error";
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.error || errorJson.message || errorText;
+          } catch {
+            errorMessage = errorText || `HTTP ${response.status}`;
+          }
           failedCount++;
-          console.error(`✗ Failed to ingest: ${file.filename}`, error);
+          console.error(`✗ Failed to ingest: ${file.filename} - ${errorMessage}`);
+          // Show the first error as a toast
+          if (failedCount === 1) {
+            toast.error(`Ingestion failed`, {
+              description: errorMessage,
+            });
+          }
         }
       } catch (error) {
         failedCount++;
@@ -556,7 +578,16 @@ export function VaultDetails({ vaultId, onBack }: VaultDetailsProps) {
                                 <Download className="mr-2 size-4" />
                                 Download
                               </DropdownMenuItem>
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  setSelectedFile(file);
+                                  setShowFileDetails(true);
+                                }}
+                              >
+                                <FileText className="mr-2 size-4" />
+                                View Details
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onSelect={(e) => {
                                   e.preventDefault();
@@ -631,6 +662,7 @@ export function VaultDetails({ vaultId, onBack }: VaultDetailsProps) {
       {/* Dialogs */}
       <UploadFileDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} vaultId={vaultId} />
       <SearchDialog open={showSearchDialog} onOpenChange={setShowSearchDialog} vaultId={vaultId} />
+      <FileDetailsDialog open={showFileDetails} onOpenChange={setShowFileDetails} file={selectedFile} />
     </div>
   );
 }

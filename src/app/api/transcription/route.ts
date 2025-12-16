@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
       speakerLabels = true,
       punctuate = true,
       formatText = true,
+      autoChapters = false,
+      summarization = false,
+      redactPii = false,
       wordBoost = [],
     } = body;
 
@@ -83,6 +86,9 @@ export async function POST(request: NextRequest) {
       speaker_labels: speakerLabels,
       punctuate,
       format_text: formatText,
+      auto_chapters: autoChapters,
+      summarization,
+      redact_pii: redactPii,
       ...(wordBoost.length > 0 && { word_boost: wordBoost }),
     };
 

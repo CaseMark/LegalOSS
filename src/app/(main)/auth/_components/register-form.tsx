@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -21,18 +22,36 @@ const FormSchema = z
     path: ["confirmPassword"],
   });
 
+interface AuthStatus {
+  hasUsers: boolean;
+  signupEnabled: boolean;
+  isFirstUser: boolean;
+}
+
+function isSignupBlocked(status: AuthStatus | null): boolean {
+  if (!status) return false;
+  return status.hasUsers === true && status.signupEnabled === false && status.isFirstUser === false;
+}
+
 export function RegisterForm() {
-  const [authStatus, setAuthStatus] = useState<{ isFirstUser: boolean } | null>(null);
+  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
 
   useEffect(() => {
     // Check if this is the first user
     fetch("/api/auth/status")
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => {
+        if (!res.ok) throw new Error("Status check failed");
+        return res.json();
+      })
+      .then((data: AuthStatus) => {
+        // Validate response has expected fields
+        if (typeof data.hasUsers !== "boolean" || typeof data.signupEnabled !== "boolean") {
+          throw new Error("Invalid status response");
+        }
         setAuthStatus(data);
 
-        // If users exist and signup disabled, redirect to login
-        if (data.hasUsers && !data.signupEnabled) {
+        // Only redirect if we're CERTAIN users exist and signup is disabled
+        if (data.hasUsers === true && data.signupEnabled === false) {
           toast.info("Signup is disabled", {
             description: "Please log in or contact an administrator",
           });
@@ -40,6 +59,11 @@ export function RegisterForm() {
             window.location.href = "/auth/v1/login";
           }, 2000);
         }
+      })
+      .catch((err) => {
+        console.warn("[RegisterForm] Status check failed:", err);
+        // On error, assume first-user mode to allow initial admin setup
+        setAuthStatus({ hasUsers: false, signupEnabled: true, isFirstUser: true });
       });
   }, []);
 
@@ -54,18 +78,16 @@ export function RegisterForm() {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
-      // Check auth status first
-      const statusResponse = await fetch("/api/auth/status");
-      const status = await statusResponse.json();
-
-      if (!status.signupEnabled && !status.isFirstUser) {
+      // Only block if we're CERTAIN signup is disabled for non-first-user
+      // The signup API will do its own validation, so we don't need to be overly strict here
+      if (isSignupBlocked(authStatus)) {
         toast.error("Registration closed", {
           description: "Signup is disabled. Contact an administrator for an invitation.",
         });
         return;
       }
 
-      // Create account
+      // Create account - the API will handle first-user detection and validation
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,12 +102,12 @@ export function RegisterForm() {
 
       if (!response.ok) {
         toast.error("Registration failed", {
-          description: result.error || "Please try again",
+          description: result.error ?? "Please try again",
         });
         return;
       }
 
-      toast.success(result.message || "Account created!", {
+      toast.success(result.message ?? "Account created!", {
         description: "Logging you in...",
       });
 
@@ -98,14 +120,14 @@ export function RegisterForm() {
         redirect: false,
       });
 
-      if (loginResult?.ok) {
+      if (loginResult.ok) {
         // Redirect to dashboard
         window.location.href = "/dashboard/default";
       } else {
         // Fallback to login page if auto-login fails
         window.location.href = "/auth/v1/login";
       }
-    } catch (error) {
+    } catch {
       toast.error("Registration failed", {
         description: "An error occurred. Please try again.",
       });

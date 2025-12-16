@@ -12,10 +12,11 @@ import { getDb } from "@/db";
 import { users, settings } from "@/db/schema";
 import { count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { v4 as uuidv4 } from "uuid";
 
 // Dev credentials - hardcoded for convenience
+// IMPORTANT: id must match DEV_USER in session.ts
 export const DEV_ADMIN = {
+  id: "dev-admin-id",
   email: "admin-dev@case.dev",
   password: "password",
   name: "Dev Admin",
@@ -76,11 +77,10 @@ async function doSeedDevData(): Promise<void> {
 
     // Hash the dev password
     const passwordHash = await bcrypt.hash(DEV_ADMIN.password, SALT_ROUNDS);
-    const userId = uuidv4();
 
-    // Create dev admin
+    // Create dev admin with hardcoded ID (must match session.ts DEV_USER)
     await db.insert(users).values({
-      id: userId,
+      id: DEV_ADMIN.id,
       email: DEV_ADMIN.email,
       name: DEV_ADMIN.name,
       passwordHash,

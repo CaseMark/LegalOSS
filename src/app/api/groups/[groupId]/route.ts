@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { groups } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
-import { eq } from "drizzle-orm";
 
 /**
  * PATCH /api/groups/[groupId] - Update group permissions

@@ -1,8 +1,10 @@
+import fs from "fs";
+import path from "path";
+
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
+
 import * as schema from "./schema";
-import path from "path";
-import fs from "fs";
 
 /**
  * PGlite database setup
@@ -274,6 +276,58 @@ async function initTables() {
       created_at TIMESTAMP NOT NULL DEFAULT NOW(),
       completed_at TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS chats (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
+      case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
+      title TEXT NOT NULL DEFAULT 'New Chat',
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      chat_id TEXT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS artifacts (
+      id TEXT PRIMARY KEY,
+      chat_id TEXT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'text',
+      content TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS tabular_analyses (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
+      case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
+      vault_id TEXT REFERENCES vaults(id) ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      document_ids TEXT NOT NULL DEFAULT '[]',
+      columns TEXT NOT NULL DEFAULT '[]',
+      model_id TEXT DEFAULT 'anthropic/claude-sonnet-4.5',
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS tabular_analysis_rows (
+      id TEXT PRIMARY KEY,
+      analysis_id TEXT NOT NULL REFERENCES tabular_analyses(id) ON DELETE CASCADE,
+      document_id TEXT NOT NULL,
+      data TEXT NOT NULL DEFAULT '{}',
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
   `);
 }
 
@@ -285,9 +339,7 @@ async function initTables() {
 export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
   get(_, prop) {
     if (!dbInstance) {
-      throw new Error(
-        "Database not initialized. Use `await getDb()` instead of `db` for async initialization.",
-      );
+      throw new Error("Database not initialized. Use `await getDb()` instead of `db` for async initialization.");
     }
     return (dbInstance as any)[prop];
   },

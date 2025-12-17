@@ -6,11 +6,11 @@ const CASE_API_KEY = process.env.CASE_API_KEY;
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     const response = await fetch(`${CASE_API_URL}/workflows/v1/search`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${CASE_API_KEY}`,
+        Authorization: `Bearer ${CASE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
@@ -26,9 +26,6 @@ export async function POST(request: Request) {
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error searching workflows:", error);
-    return NextResponse.json(
-      { error: "Failed to search workflows" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to search workflows" }, { status: 500 });
   }
 }

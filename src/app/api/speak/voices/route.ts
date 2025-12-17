@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { requirePermission } from "@/lib/auth/session";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { ocrJobs } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth/session";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";

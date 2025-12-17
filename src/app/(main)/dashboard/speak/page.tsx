@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Volume2, Play, Pause, Download, Loader2 } from "lucide-react";
-import useSWR from "swr";
-import { toast } from "sonner";
 
+import { Volume2, Play, Pause, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import useSWR from "swr";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

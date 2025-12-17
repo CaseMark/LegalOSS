@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { v4 as uuidv4 } from "uuid";
+
 import { getDb } from "@/db";
 import { cases } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { getAccessibleCases, generateCaseNumber } from "@/lib/case-management/access";
-import { v4 as uuidv4 } from "uuid";
 
 /**
  * GET /api/cases - List cases user can access (group-scoped)

@@ -4,6 +4,7 @@ import { LogOut, Shield, User as UserIcon } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 export function UserMenu() {
   const { data: session } = useSession();

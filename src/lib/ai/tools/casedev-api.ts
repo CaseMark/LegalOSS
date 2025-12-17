@@ -351,7 +351,7 @@ export const caseDevApiTools = {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("[Tool] searchWorkflows - Error response:", response.status, errorText);
-        
+
         // Handle permission denied specifically
         if (response.status === 403) {
           let errorMessage = "API key does not have access to Workflows service";
@@ -365,7 +365,7 @@ export const caseDevApiTools = {
           }
           throw new Error(`${errorMessage}. Please ensure your API key has Workflows service access enabled.`);
         }
-        
+
         throw new Error(`Failed to search workflows: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
@@ -413,7 +413,7 @@ export const caseDevApiTools = {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("[Tool] getWorkflow - Error response:", response.status, errorText);
-        
+
         // Handle permission denied specifically
         if (response.status === 403) {
           let errorMessage = "API key does not have access to Workflows service";
@@ -427,7 +427,7 @@ export const caseDevApiTools = {
           }
           throw new Error(`${errorMessage}. Please ensure your API key has Workflows service access enabled.`);
         }
-        
+
         throw new Error(`Failed to get workflow: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
@@ -511,7 +511,9 @@ export const caseDevApiTools = {
     description:
       "Get an AI-generated answer to a question using web search. Synthesizes information from multiple sources into a cohesive answer with citations. Best for questions that need current information.",
     inputSchema: z.object({
-      query: z.string().describe("Question to answer (e.g., 'What are the key changes in California employment law 2024?')"),
+      query: z
+        .string()
+        .describe("Question to answer (e.g., 'What are the key changes in California employment law 2024?')"),
       numResults: z.number().default(10).describe("Number of web results to synthesize (more = better but slower)"),
     }),
     execute: async ({ query, numResults }) => {
@@ -549,7 +551,11 @@ export const caseDevApiTools = {
     description:
       "Run deep, multi-step research on a complex topic. Takes longer (1-5 minutes) but produces comprehensive reports with multiple searches and source synthesis. Best for complex legal research questions.",
     inputSchema: z.object({
-      instructions: z.string().describe("Research instructions (e.g., 'Research recent developments in non-compete agreement enforceability across US states')"),
+      instructions: z
+        .string()
+        .describe(
+          "Research instructions (e.g., 'Research recent developments in non-compete agreement enforceability across US states')",
+        ),
       model: z
         .enum(["exa-research-fast", "exa-research", "exa-research-pro"])
         .default("exa-research")
@@ -626,20 +632,43 @@ export const caseDevApiTools = {
     description:
       "Execute a Case.dev workflow on documents or text. First use searchWorkflows to find the workflow ID, then use this tool to execute it. Supports text input, document URLs, or vault object IDs.",
     inputSchema: z.object({
-      workflowId: z.string().describe("The workflow ID (UUID) to execute. Get this from searchWorkflows or getWorkflow."),
+      workflowId: z
+        .string()
+        .describe("The workflow ID (UUID) to execute. Get this from searchWorkflows or getWorkflow."),
       text: z.string().optional().describe("Text content to process (e.g., deposition transcript text)"),
       documentUrl: z.string().url().optional().describe("URL to a document to process"),
       vaultObjectId: z.string().optional().describe("Vault object ID if document is in a vault"),
-      model: z.string().optional().describe("LLM model to use (e.g., 'anthropic/claude-sonnet-4.5'). Defaults to workflow's recommended model."),
-      temperature: z.number().min(0).max(2).default(0.7).optional().describe("Randomness/creativity (0-2, default: 0.7)"),
+      model: z
+        .string()
+        .optional()
+        .describe("LLM model to use (e.g., 'anthropic/claude-sonnet-4.5'). Defaults to workflow's recommended model."),
+      temperature: z
+        .number()
+        .min(0)
+        .max(2)
+        .default(0.7)
+        .optional()
+        .describe("Randomness/creativity (0-2, default: 0.7)"),
       maxTokens: z.number().int().min(1).default(4096).optional().describe("Maximum tokens to generate"),
       format: z.enum(["json", "text", "pdf"]).default("json").optional().describe("Output format"),
       variables: z
         .record(z.string(), z.string())
         .optional()
-        .describe("Custom variables for prompt substitution (e.g., { case_name: 'Smith v. Hospital', date: '2024-01-15' })"),
+        .describe(
+          "Custom variables for prompt substitution (e.g., { case_name: 'Smith v. Hospital', date: '2024-01-15' })",
+        ),
     }),
-    execute: async ({ workflowId, text, documentUrl, vaultObjectId, model, temperature, maxTokens, format, variables }) => {
+    execute: async ({
+      workflowId,
+      text,
+      documentUrl,
+      vaultObjectId,
+      model,
+      temperature,
+      maxTokens,
+      format,
+      variables,
+    }) => {
       console.log("[Tool] executeWorkflow called:", {
         workflowId,
         text: text ? `${text.substring(0, 50)}...` : undefined,
@@ -702,7 +731,7 @@ export const caseDevApiTools = {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("[Tool] executeWorkflow - Error response:", response.status, errorText);
-        
+
         // Handle permission denied specifically
         if (response.status === 403) {
           let errorMessage = "API key does not have access to Workflows service";
@@ -716,7 +745,7 @@ export const caseDevApiTools = {
           }
           throw new Error(`${errorMessage}. Please ensure your API key has Workflows service access enabled.`);
         }
-        
+
         throw new Error(`Failed to execute workflow: ${response.status} ${response.statusText} - ${errorText}`);
       }
 

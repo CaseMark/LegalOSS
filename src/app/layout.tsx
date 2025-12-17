@@ -14,7 +14,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
-const instrumentSerif = Instrument_Serif({ 
+const instrumentSerif = Instrument_Serif({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-instrument-serif",
@@ -36,7 +36,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-theme-preset={themePreset}
       suppressHydrationWarning
     >
-      <body className={`${inter.className} ${instrumentSerif.variable} flex h-screen flex-col overflow-hidden antialiased`} suppressHydrationWarning>
+      <body
+        className={`${inter.className} ${instrumentSerif.variable} flex h-screen flex-col overflow-hidden antialiased`}
+        suppressHydrationWarning
+      >
         <Providers>
           <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>

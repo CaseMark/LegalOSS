@@ -1,9 +1,10 @@
 /**
  * Session helpers for API routes
- * 
+ *
  * DEV MODE: When IS_DEV=true, returns a mock admin user (no auth required)
  */
 import { auth } from "@/lib/auth";
+
 import { getUserById } from "./utils";
 
 export type SessionUser = {

@@ -13,10 +13,8 @@ export interface WorkflowItem {
 }
 
 export function useWorkflows(query?: string) {
-  const endpoint = query?.trim() 
-    ? `/api/workflows/search?q=${encodeURIComponent(query)}`
-    : "/api/workflows";
-    
+  const endpoint = query?.trim() ? `/api/workflows/search?q=${encodeURIComponent(query)}` : "/api/workflows";
+
   const { data, error, isLoading } = useSWR(endpoint, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
@@ -30,11 +28,9 @@ export function useWorkflows(query?: string) {
 }
 
 export function useWorkflow(workflowId: string | null) {
-  const { data, error, isLoading } = useSWR(
-    workflowId ? `/api/workflows/${workflowId}` : null,
-    fetcher,
-    { revalidateOnFocus: false }
-  );
+  const { data, error, isLoading } = useSWR(workflowId ? `/api/workflows/${workflowId}` : null, fetcher, {
+    revalidateOnFocus: false,
+  });
 
   return {
     workflow: data,

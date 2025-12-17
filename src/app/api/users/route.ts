@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+
+import { desc } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
-import { desc } from "drizzle-orm";
 
 /**
  * GET /api/users - List all users (admin only)

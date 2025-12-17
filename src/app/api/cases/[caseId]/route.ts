@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { cases, caseParties, caseEvents, caseTasks, caseDocuments } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { canAccessCase } from "@/lib/case-management/access";
-import { eq } from "drizzle-orm";
 
 /**
  * GET /api/cases/[caseId] - Get case details with related data

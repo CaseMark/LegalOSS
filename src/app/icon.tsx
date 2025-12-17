@@ -1,13 +1,13 @@
-import { ImageResponse } from 'next/og';
+import { ImageResponse } from "next/og";
 
-export const runtime = 'edge';
+export const runtime = "edge";
 
 export const size = {
   width: 24,
   height: 24,
 };
 
-export const contentType = 'image/svg+xml';
+export const contentType = "image/svg+xml";
 
 export default function Icon() {
   return new ImageResponse(
@@ -33,6 +33,6 @@ export default function Icon() {
     ),
     {
       ...size,
-    }
+    },
   );
 }

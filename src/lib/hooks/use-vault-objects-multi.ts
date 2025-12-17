@@ -14,14 +14,14 @@ export interface VaultObject {
 
 export function useVaultObjectsMulti(vaultIds: string[]) {
   const vaultIdsKey = vaultIds.sort().join(",");
-  
+
   const { data, error, isLoading } = useSWR(
     vaultIds.length > 0 ? `/api/vaults/objects-multi?vaultIds=${encodeURIComponent(vaultIdsKey)}` : null,
     fetcher,
     {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
-    }
+    },
   );
 
   return {

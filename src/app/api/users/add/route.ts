@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/session";
-import { getUserByEmail } from "@/lib/auth/utils";
+
+import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
+
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
-import { v4 as uuidv4 } from "uuid";
-import bcrypt from "bcryptjs";
+import { requireAdmin } from "@/lib/auth/session";
+import { getUserByEmail } from "@/lib/auth/utils";
 
 const SALT_ROUNDS = 10;
 

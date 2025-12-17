@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Download, FileText, AlertCircle, Eye } from "lucide-react";
-import useSWR from "swr";
+
 import dynamic from "next/dynamic";
 
+import { ArrowLeft, Download, FileText, AlertCircle, Eye } from "lucide-react";
+import useSWR from "swr";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Load OCR Evaluation only on client-side (PDF.js needs browser APIs)
 const OCREvaluation = dynamic(() => import("./ocr-evaluation").then((mod) => ({ default: mod.OCREvaluation })), {

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { cases, caseParties } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { canAccessCase } from "@/lib/case-management/access";
-import { eq } from "drizzle-orm";
 
 /**
  * POST /api/cases/[caseId]/parties - Add party to case

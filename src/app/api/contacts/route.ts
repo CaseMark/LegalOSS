@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { v4 as uuidv4 } from "uuid";
+
 import { getDb } from "@/db";
 import { contacts } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
-import { v4 as uuidv4 } from "uuid";
 
 /**
  * POST /api/contacts - Create contact

@@ -1,8 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FolderLock, FileText, Database } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FolderLock, FileText, Database } from "lucide-react";
 
 import {
   caseDevApiToolOptions,
@@ -39,16 +40,13 @@ interface ToolsConfigProps {
 }
 
 export function ToolsConfig({ enabledTools, onToolToggle, vaults, selectedVaults, onVaultsChange }: ToolsConfigProps) {
-  const isToolEnabled = (toolName: string) =>
-    enabledTools[toolName] ?? defaultEnabledToolState[toolName] ?? false;
+  const isToolEnabled = (toolName: string) => enabledTools[toolName] ?? defaultEnabledToolState[toolName] ?? false;
 
   const toggleableTools = allToolOptions.filter((tool) => tool.status !== "coming_soon");
   const enabledCount = toggleableTools.filter((tool) => isToolEnabled(tool.name)).length;
 
   const availableVaults = vaults.filter((v: any) => v.objectCount > 0);
-  const showVaultSelection = allToolOptions.some(
-    (tool) => tool.requiresVaultSelection && isToolEnabled(tool.name),
-  );
+  const showVaultSelection = allToolOptions.some((tool) => tool.requiresVaultSelection && isToolEnabled(tool.name));
 
   const handleVaultToggle = (vaultId: string, checked: boolean) => {
     if (checked) {
@@ -109,10 +107,10 @@ export function ToolsConfig({ enabledTools, onToolToggle, vaults, selectedVaults
       </CardHeader>
       <CardContent className="space-y-4">
         {showVaultSelection && (
-          <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-3">
+          <div className="bg-muted/30 space-y-2 rounded-md border border-dashed p-3">
             <div className="flex items-center gap-2">
               <FolderLock className="text-primary size-4" />
-              <Label className="text-xs font-medium uppercase tracking-wide">Vault Scope</Label>
+              <Label className="text-xs font-medium tracking-wide uppercase">Vault Scope</Label>
             </div>
             {availableVaults.length === 0 ? (
               <p className="text-muted-foreground text-[10px] leading-tight">
@@ -145,7 +143,7 @@ export function ToolsConfig({ enabledTools, onToolToggle, vaults, selectedVaults
 
         <div className="space-y-2">
           <div>
-            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Label className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
               Case.dev API tools
             </Label>
             <p className="text-muted-foreground text-[10px]">
@@ -157,7 +155,7 @@ export function ToolsConfig({ enabledTools, onToolToggle, vaults, selectedVaults
 
         <div className="space-y-2">
           <div>
-            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Label className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
               Legacy demo tools
             </Label>
             <p className="text-muted-foreground text-[10px]">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { X } from "lucide-react";
 
 export function WelcomeSplash() {
@@ -39,14 +40,14 @@ export function WelcomeSplash() {
           backgroundImage: "url('/images/lincoln-memorial-night.jpg')",
         }}
       />
-      
+
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Close Button */}
       <button
         onClick={handleClose}
-        className="absolute right-6 top-6 z-10 rounded-full bg-white/10 p-2 text-white/70 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white"
+        className="absolute top-6 right-6 z-10 rounded-full bg-white/10 p-2 text-white/70 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white"
       >
         <X className="h-6 w-6" />
       </button>
@@ -59,10 +60,8 @@ export function WelcomeSplash() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Welcome Text */}
-        <p className="mb-2 text-lg tracking-widest text-white/60 uppercase">
-          Welcome to
-        </p>
-        
+        <p className="mb-2 text-lg tracking-widest text-white/60 uppercase">Welcome to</p>
+
         {/* LegalOSS Title */}
         <h1
           className="mb-8 text-7xl tracking-tight text-white md:text-8xl"
@@ -73,27 +72,22 @@ export function WelcomeSplash() {
 
         {/* Quote */}
         <blockquote className="mb-8 border-l-2 border-white/30 pl-6 text-left">
-          <p className="text-xl leading-relaxed text-white/90 md:text-2xl" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic" }}>
-            "Equal justice under law is not merely a caption on the facade of the Supreme Court building, 
-            it is perhaps the most inspiring ideal of our society. It is one of the ends for which our 
-            entire legal system exists."
+          <p
+            className="text-xl leading-relaxed text-white/90 md:text-2xl"
+            style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic" }}
+          >
+            "Equal justice under law is not merely a caption on the facade of the Supreme Court building, it is perhaps
+            the most inspiring ideal of our society. It is one of the ends for which our entire legal system exists."
           </p>
-          <footer className="mt-4 text-sm text-white/50">
-            — Justice Lewis F. Powell Jr.
-          </footer>
+          <footer className="mt-4 text-sm text-white/50">— Justice Lewis F. Powell Jr.</footer>
         </blockquote>
 
         {/* Subtitle */}
-        <p className="text-base text-white/60">
-          Open source legal AI infrastructure for the people.
-        </p>
+        <p className="text-base text-white/60">Open source legal AI infrastructure for the people.</p>
 
         {/* Click to continue hint */}
-        <p className="mt-12 animate-pulse text-sm text-white/40">
-          Click anywhere to continue
-        </p>
+        <p className="mt-12 animate-pulse text-sm text-white/40">Click anywhere to continue</p>
       </div>
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/session";
+
 import { createGroup, getAllGroups } from "@/lib/auth/groups";
+import { requireAdmin } from "@/lib/auth/session";
 
 /**
  * GET /api/groups - List all groups

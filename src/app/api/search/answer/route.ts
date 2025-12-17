@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { requirePermission } from "@/lib/auth/session";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
       const error = await response.json().catch(() => ({ message: "Answer generation failed" }));
       return NextResponse.json(
         { error: error.message || "Answer generation failed", data: error.data },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -60,4 +61,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Answer generation failed" }, { status: 500 });
   }
 }
-

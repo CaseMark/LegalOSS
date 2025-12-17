@@ -1,0 +1,215 @@
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { matters, messages as messagesTable, chats } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { systemPrompt } from '@/lib/ai/prompts';
+import {
+  streamText,
+  smoothStream,
+  convertToModelMessages,
+  createUIMessageStream,
+  JsonToSseTransformStream,
+  UIMessage,
+} from 'ai';
+import { getLanguageModelForId, DEFAULT_CHAT_MODEL } from '@/lib/ai/providers';
+import { webSearch } from '@/lib/ai/tools/web-search';
+import { legalFind } from '@/lib/ai/tools/legal-find';
+import { legalVerify } from '@/lib/ai/tools/legal-verify';
+import { createArtifact } from '@/lib/ai/tools/create-artifact';
+import { updateArtifact } from '@/lib/ai/tools/update-artifact';
+import { createDocSearch } from '@/lib/ai/tools/doc-search';
+
+export const maxDuration = 180; // 3 minute timeout
+
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, message, messages: clientMessages, selectedChatModel, matterId, userArtifactEdits } = body;
+
+    // Support both formats: single message or messages array
+    const inputMessages: UIMessage[] = clientMessages || (message ? [message] : []);
+
+    // Get matter info for context and vault access
+    let matterContext = '';
+    let vaultId: string | null = null;
+    
+    // Build artifact edit context if user made edits
+    let artifactEditContext = '';
+    if (userArtifactEdits && userArtifactEdits.length > 0) {
+      const edits = userArtifactEdits.map((e: { title: string; version: number }) => 
+        `"${e.title}" (now v${e.version})`
+      ).join(', ');
+      artifactEditContext = `\n\n[System Note: The user has manually edited the following artifact(s): ${edits}. The artifact content has been updated. If the user asks about it, use update_artifact to make further changes rather than creating a new artifact.]`;
+    }
+
+    if (matterId) {
+      const [matter] = await db
+        .select()
+        .from(matters)
+        .where(eq(matters.id, matterId))
+        .limit(1);
+
+      if (matter) {
+        matterContext = `Current matter: ${matter.name}`;
+        vaultId = matter.vaultId;
+      }
+    }
+
+    // Get the model - use client-selected or default
+    const selectedModel = selectedChatModel || body.model || DEFAULT_CHAT_MODEL;
+    const modelInstance = getLanguageModelForId(selectedModel);
+
+    // Ensure chat exists in DB (upsert) - do this FIRST before processing
+    const firstUserMsg = inputMessages.find(m => m.role === 'user');
+    const firstTextPart = firstUserMsg?.parts?.find((p: any) => p.type === 'text');
+    const chatTitle = firstTextPart && 'text' in firstTextPart 
+      ? (firstTextPart.text as string).slice(0, 50) + ((firstTextPart.text as string).length > 50 ? '...' : '')
+      : 'New Chat';
+
+    try {
+      const [existingChat] = await db.select().from(chats).where(eq(chats.id, id)).limit(1);
+      if (!existingChat) {
+        await db.insert(chats).values({
+          id,
+          userId: session.user.id,
+          title: chatTitle,
+          matterId: matterId || null,
+        });
+      }
+    } catch {
+      // Chat already exists or DB error - continue
+    }
+
+    // Convert UIMessages to model messages
+    const modelMessages = convertToModelMessages(inputMessages);
+
+    // Create UI message stream (same pattern as reference CaseChat)
+    const stream = createUIMessageStream({
+      execute: async ({ writer }) => {
+        const result = streamText({
+          model: modelInstance,
+          system: systemPrompt({ matterContext }) + artifactEditContext,
+          messages: modelMessages,
+          temperature: 0.1,
+          tools: {
+            web_search: webSearch,
+            legal_find: legalFind,
+            legal_verify: legalVerify,
+            create_artifact: createArtifact,
+            update_artifact: updateArtifact,
+            doc_search: createDocSearch(vaultId || ''),
+          },
+          // @ts-expect-error - maxSteps exists but TS inference struggles with dynamic tools
+          maxSteps: 50, // Allow multi-step tool calls (increased for complex workflows)
+          // stopWhen controls when multi-step execution ends
+          // Returns true to STOP, false/undefined to CONTINUE
+          stopWhen: (step: any) => {
+            // Continue processing until step limit
+            if (step.stepNumber >= 50) {
+              return true;
+            }
+            return false;
+          },
+          experimental_transform: smoothStream({ chunking: 'word' }),
+          onFinish: async ({ usage }: any) => {
+            // Emit usage data to client
+            if (usage) {
+              writer.write({
+                type: 'data-usage',
+                data: {
+                  inputTokens: usage.inputTokens,
+                  outputTokens: usage.outputTokens,
+                  totalTokens: (usage.inputTokens || 0) + (usage.outputTokens || 0),
+                },
+              });
+            }
+            // Message saving moved to createUIMessageStream's onFinish
+          },
+        });
+
+        // CRITICAL: Consume the stream and merge to UI message stream
+        result.consumeStream();
+        writer.merge(result.toUIMessageStream({ sendReasoning: true }));
+      },
+      generateId: generateUUID,
+      onError: (error: unknown) => {
+        // Log any stream-level errors
+        console.error('[Chat] Stream error:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return `An error occurred: ${errorMessage}`;
+      },
+      onFinish: async ({ messages: streamMessages }) => {
+        // Save both the user input message and the assistant response
+        console.log('[Chat] onFinish - saving messages');
+        
+        try {
+          // First, save the user message (from inputMessages)
+          const lastUserMsg = inputMessages[inputMessages.length - 1];
+          if (lastUserMsg?.role === 'user') {
+            const userParts = lastUserMsg.parts || [];
+            const userText = userParts
+              .filter((p: any) => p.type === 'text')
+              .map((p: any) => p.text)
+              .join('');
+            
+            console.log('[Chat] Saving user message:', { partsCount: userParts.length });
+            await db.insert(messagesTable).values({
+              chatId: id,
+              role: 'user',
+              content: {
+                text: userText,
+                parts: userParts as any[],
+              },
+            });
+          }
+          
+          // Then save the assistant message(s) from the stream
+          for (const msg of streamMessages) {
+            const msgParts = (msg as any).parts || [];
+            console.log('[Chat] Saving assistant message:', {
+              role: msg.role,
+              partsCount: msgParts.length,
+              partTypes: msgParts.map((p: any) => p.type),
+            });
+            
+            // Extract text content from parts
+            const textContent = msgParts
+              .filter((p: any) => p.type === 'text')
+              .map((p: any) => p.text)
+              .join('');
+            
+            await db.insert(messagesTable).values({
+              chatId: id,
+              role: msg.role as 'user' | 'assistant',
+              content: {
+                text: textContent,
+                parts: msgParts,
+              },
+            });
+          }
+          
+          // Update chat updatedAt
+          await db.update(chats).set({ updatedAt: new Date() }).where(eq(chats.id, id));
+        } catch (err) {
+          console.error('[Chat] Failed to save messages:', err);
+        }
+      },
+    });
+
+    // Return SSE response (same pattern as reference CaseChat)
+    return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
+  } catch (error) {
+    console.error('Chat API error:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return new Response(message, { status: 500 });
+  }
+}

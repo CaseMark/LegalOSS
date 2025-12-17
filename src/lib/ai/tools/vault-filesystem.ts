@@ -9,7 +9,7 @@ interface VaultFilesystemToolOptions {
 
 type ToolDefinition = {
   description: string;
-  parameters: z.ZodTypeAny;
+  inputSchema: z.ZodTypeAny;
   execute: (...args: any[]) => Promise<any>;
 };
 
@@ -18,7 +18,7 @@ const createTool = (definition: ToolDefinition) => definition;
 export function vaultFilesystemTools({ selectedVaults }: VaultFilesystemToolOptions) {
   const listVaultFiles = createTool({
     description: `List all files in a vault with their indexing status. Shows which files are uploaded, indexed for search, and processed with GraphRAG. Use this to discover what documents are available before searching. If user doesn't specify which vault, list files from ALL available vaults.`,
-    parameters: z.object({
+    inputSchema: z.object({
       vaultId: z
         .string()
         .optional()
@@ -89,7 +89,7 @@ export function vaultFilesystemTools({ selectedVaults }: VaultFilesystemToolOpti
 
   const getVaultFileInfo = createTool({
     description: `Get detailed information about a specific file in a vault including its indexing status, size, and metadata.`,
-    parameters: z.object({
+    inputSchema: z.object({
       vaultId: z.string().describe("The vault ID"),
       objectId: z.string().describe("The object/file ID to get info about"),
     }),
@@ -136,7 +136,7 @@ export function vaultFilesystemTools({ selectedVaults }: VaultFilesystemToolOpti
 
   const organizeVaultsByContent = createTool({
     description: `Analyze and categorize files across all available vaults based on their content. Useful for understanding what types of documents you have access to.`,
-    parameters: z.object({}),
+    inputSchema: z.object({}),
     execute: async () => {
       if (!CASE_API_KEY) throw new Error("CASE_API_KEY not configured");
 

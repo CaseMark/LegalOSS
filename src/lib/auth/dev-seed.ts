@@ -1,17 +1,18 @@
 /**
  * Development Seed Data
- * 
+ *
  * Automatically seeds the database with a dev admin user when:
  * - IS_DEV=true environment variable is set
  * - No users exist yet
- * 
+ *
  * This provides a zero-config development experience.
  */
 
+import bcrypt from "bcryptjs";
+import { count } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { users, settings } from "@/db/schema";
-import { count } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 
 // Dev credentials - hardcoded for convenience
 // IMPORTANT: id must match DEV_USER in session.ts
@@ -61,12 +62,12 @@ export async function seedDevData(): Promise<void> {
 async function doSeedDevData(): Promise<void> {
   try {
     console.log("[DevSeed] Checking if dev seed is needed...");
-    
+
     const db = await getDb();
-    
+
     // Check if users exist
     const userCount = await db.select({ count: count() }).from(users);
-    
+
     if (userCount[0].count > 0) {
       console.log("[DevSeed] Users already exist, skipping seed");
       seedComplete = true;
@@ -113,7 +114,7 @@ async function doSeedDevData(): Promise<void> {
       });
 
     seedComplete = true;
-    
+
     console.log("[DevSeed] ✅ Dev admin created:");
     console.log(`[DevSeed]    Email: ${DEV_ADMIN.email}`);
     console.log(`[DevSeed]    Password: ${DEV_ADMIN.password}`);
@@ -138,4 +139,3 @@ export function getDevCredentials(): { email: string; password: string } | null 
     password: DEV_ADMIN.password,
   };
 }
-

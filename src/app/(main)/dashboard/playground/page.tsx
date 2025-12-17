@@ -1,33 +1,29 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { RotateCcw, Bot, User, Send, Brain, ChevronRight } from "lucide-react";
+
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { RotateCcw, Bot, User, Send, Brain, ChevronRight } from "lucide-react";
 import { Streamdown } from "streamdown";
 import useSWR from "swr";
 
-import { useVaultsWithStats } from "@/lib/hooks/use-vault-stats";
-
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { useVaultsWithStats } from "@/lib/hooks/use-vault-stats";
 
+import { MaxLengthSelector } from "./components/maxlength-selector";
 import { ModelSelector } from "./components/model-selector";
 import { TemperatureSelector } from "./components/temperature-selector";
-import { MaxLengthSelector } from "./components/maxlength-selector";
-import { TopPSelector } from "./components/top-p-selector";
 import { ToolInvocation } from "./components/tool-invocation";
-import { ToolsConfig } from "./components/tools-config";
 import { defaultEnabledToolState } from "./components/tool-options";
+import { ToolsConfig } from "./components/tools-config";
+import { TopPSelector } from "./components/top-p-selector";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -223,7 +219,7 @@ Be thorough, analytical, and actionable.`,
 
     // Check if viewport is available for smart scroll detection
     const hasViewport = !!scrollViewportRef.current;
-    
+
     if (hasViewport) {
       // Smart auto-scroll: only if user is near bottom
       const nearBottom = checkIfNearBottom();
@@ -274,12 +270,12 @@ Be thorough, analytical, and actionable.`,
       <div className="flex-none border-b px-6 py-4">
         <h2 className="text-lg font-semibold">Playground</h2>
       </div>
-      
+
       {/* Main Content Area */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="grid min-h-0 w-full gap-6 px-6 py-4 md:grid-cols-[1fr_336px]">
-            {/* Right Sidebar - Scrollable */}
-            <div className="hidden min-h-0 flex-col gap-4 overflow-y-auto sm:flex md:order-2 pr-2">
+          {/* Right Sidebar - Scrollable */}
+          <div className="hidden min-h-0 flex-col gap-4 overflow-y-auto pr-2 sm:flex md:order-2">
             <ModelSelector models={models} value={selectedModel} onValueChange={setSelectedModel} />
             <TemperatureSelector value={temperature} onValueChange={setTemperature} />
             <MaxLengthSelector value={maxTokens} onValueChange={setMaxTokens} />
@@ -315,7 +311,7 @@ Be thorough, analytical, and actionable.`,
             />
           </div>
           {/* Left Side - Chat Area with fixed input */}
-          <div className="flex min-h-0 flex-1 flex-col md:order-1 overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:order-1">
             {/* Messages - Scrollable */}
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
@@ -376,17 +372,17 @@ Be thorough, analytical, and actionable.`,
                                   return (
                                     <Collapsible
                                       key={`${message.id}-reasoning-${partIndex}`}
-                                      className="mb-2 rounded-md border bg-muted/30"
+                                      className="bg-muted/30 mb-2 rounded-md border"
                                       defaultOpen={partIndex === 0}
                                     >
-                                      <CollapsibleTrigger className="flex w-full items-center gap-2 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground [&[data-state=open]>svg]:rotate-90 transition-colors">
+                                      <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 px-4 py-2 text-xs font-medium transition-colors [&[data-state=open]>svg]:rotate-90">
                                         <ChevronRight className="size-3.5 transition-transform duration-200" />
                                         <Brain className="size-3.5" />
                                         Reasoning (Step {reasoningStep})
                                       </CollapsibleTrigger>
                                       <CollapsibleContent>
-                                        <div className="px-4 pb-4 pt-0">
-                                          <div className="text-muted-foreground font-mono text-xs leading-relaxed whitespace-pre-wrap pl-[22px]">
+                                        <div className="px-4 pt-0 pb-4">
+                                          <div className="text-muted-foreground pl-[22px] font-mono text-xs leading-relaxed whitespace-pre-wrap">
                                             {part.text}
                                           </div>
                                         </div>
@@ -397,22 +393,22 @@ Be thorough, analytical, and actionable.`,
 
                                 // Text parts - render with markdown support
                                 if (part.type === "text") {
-                              return (
-                                <div
-                                  key={`${message.id}-text-${partIndex}`}
-                                  className={`rounded-lg p-4 ${
-                                    message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                                  }`}
-                                >
-                                  <Streamdown
-                                    isAnimating={status === "streaming"}
-                                    className={message.role === "user" ? "prose-invert" : ""}
-                                  >
-                                    {part.text}
-                                  </Streamdown>
-                                </div>
-                              );
-                            }
+                                  return (
+                                    <div
+                                      key={`${message.id}-text-${partIndex}`}
+                                      className={`rounded-lg p-4 ${
+                                        message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                                      }`}
+                                    >
+                                      <Streamdown
+                                        isAnimating={status === "streaming"}
+                                        className={message.role === "user" ? "prose-invert" : ""}
+                                      >
+                                        {part.text}
+                                      </Streamdown>
+                                    </div>
+                                  );
+                                }
 
                                 // Tool invocation parts
                                 if (part.type.startsWith("tool-")) {
@@ -458,7 +454,7 @@ Be thorough, analytical, and actionable.`,
             </div>
 
             {/* Input Form - Fixed at bottom */}
-            <form onSubmit={handleSubmit} className="flex-none flex flex-col gap-2 border-t p-4">
+            <form onSubmit={handleSubmit} className="flex flex-none flex-col gap-2 border-t p-4">
               <Textarea
                 placeholder="Ask the AI to search vaults, run workflows, or analyze documents..."
                 value={inputValue}

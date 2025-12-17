@@ -1,6 +1,7 @@
+import { Loader2, Search, FileText, Zap, Database, FolderLock, CheckCircle2, Clock } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Loader2, Search, FileText, Zap, Database, FolderLock, CheckCircle2, Clock } from "lucide-react";
 
 interface ToolInvocationProps {
   toolName: string;
@@ -350,11 +351,11 @@ function renderToolResult(toolName: string, result: any) {
           {result.workflows && result.workflows.length > 0 && (
             <div className="max-h-96 space-y-2 overflow-y-auto">
               {result.workflows.map((workflow: any, i: number) => (
-                <div key={workflow.id || i} className="rounded border bg-muted/30 p-3">
+                <div key={workflow.id || i} className="bg-muted/30 rounded border p-3">
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <div className="mb-1 flex items-center gap-2">
-                        <span className="text-xs font-bold text-primary">#{i + 1}</span>
+                        <span className="text-primary text-xs font-bold">#{i + 1}</span>
                         <span className="text-xs font-medium">{workflow.name}</span>
                         <Badge variant="outline" className="text-[10px]">
                           {workflow.type}
@@ -430,7 +431,12 @@ function renderToolResult(toolName: string, result: any) {
             {result.demoVideoLink && (
               <div>
                 <span className="text-muted-foreground">Demo:</span>{" "}
-                <a href={result.demoVideoLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a
+                  href={result.demoVideoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
                   Watch Video
                 </a>
               </div>
@@ -438,7 +444,12 @@ function renderToolResult(toolName: string, result: any) {
             {result.groundTruthExample && (
               <div>
                 <span className="text-muted-foreground">Example:</span>{" "}
-                <a href={result.groundTruthExample} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a
+                  href={result.groundTruthExample}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
                   View Example
                 </a>
               </div>
@@ -450,7 +461,7 @@ function renderToolResult(toolName: string, result: any) {
     case "executeWorkflow":
       return (
         <div className="space-y-2">
-          <div className="font-medium text-sm">✓ Workflow Executed</div>
+          <div className="text-sm font-medium">✓ Workflow Executed</div>
           <div className="space-y-1 text-xs">
             {result.workflowName && (
               <div>
@@ -459,12 +470,14 @@ function renderToolResult(toolName: string, result: any) {
             )}
             {result.executionId && (
               <div>
-                <span className="text-muted-foreground">Execution ID:</span> <code className="text-[10px]">{result.executionId}</code>
+                <span className="text-muted-foreground">Execution ID:</span>{" "}
+                <code className="text-[10px]">{result.executionId}</code>
               </div>
             )}
             {result.workflowId && (
               <div>
-                <span className="text-muted-foreground">Workflow ID:</span> <code className="text-[10px]">{result.workflowId}</code>
+                <span className="text-muted-foreground">Workflow ID:</span>{" "}
+                <code className="text-[10px]">{result.workflowId}</code>
               </div>
             )}
             <div>
@@ -481,7 +494,12 @@ function renderToolResult(toolName: string, result: any) {
             {result.outputUrl && (
               <div>
                 <span className="text-muted-foreground">Result:</span>{" "}
-                <a href={result.outputUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a
+                  href={result.outputUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
                   {result.outputFormat === "pdf" ? "Download PDF" : "View Results"}
                 </a>
                 {result.outputExpiresAt && (
@@ -493,11 +511,13 @@ function renderToolResult(toolName: string, result: any) {
             )}
             {result.outputData && result.outputFormat === "json" && (
               <details className="mt-2">
-                <summary className="text-muted-foreground cursor-pointer text-[10px] hover:text-foreground">
+                <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-[10px]">
                   Show JSON Output
                 </summary>
                 <div className="bg-background/50 mt-2 max-h-48 overflow-y-auto rounded border p-2">
-                  <pre className="whitespace-pre-wrap font-mono text-[9px]">{JSON.stringify(result.outputData, null, 2)}</pre>
+                  <pre className="font-mono text-[9px] whitespace-pre-wrap">
+                    {JSON.stringify(result.outputData, null, 2)}
+                  </pre>
                 </div>
               </details>
             )}
@@ -505,7 +525,8 @@ function renderToolResult(toolName: string, result: any) {
               <div className="mt-2 space-y-0.5 border-t pt-2 text-[10px]">
                 <div>
                   <span className="text-muted-foreground">Tokens:</span> {result.usage.totalTokens?.toLocaleString()} (
-                  {result.usage.promptTokens?.toLocaleString()} prompt + {result.usage.completionTokens?.toLocaleString()} completion)
+                  {result.usage.promptTokens?.toLocaleString()} prompt +{" "}
+                  {result.usage.completionTokens?.toLocaleString()} completion)
                 </div>
                 {result.usage.cost && (
                   <div>

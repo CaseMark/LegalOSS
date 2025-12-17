@@ -1,30 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import useSWR from "swr";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { useVaults, useVaultObjects } from "@/lib/hooks/use-vaults";
-import { AppHeader } from "@/app/(main)/dashboard/_components/header";
+
 import {
   Plus,
   Notebook,
@@ -37,6 +14,24 @@ import {
   HardDrive,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import useSWR from "swr";
+
+import { AppHeader } from "@/app/(main)/dashboard/_components/header";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { useVaults, useVaultObjects } from "@/lib/hooks/use-vaults";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -144,12 +139,12 @@ export default function FormatterPage() {
   const [isFormatting, setFormatting] = useState(false);
   const [formatResult, setFormatResult] = useState<FormatResult | null>(null);
   const [formatError, setFormatError] = useState<string | null>(null);
-const { vaults } = useVaults();
-const [vaultSourceId, setVaultSourceId] = useState<string | null>(null);
-const { objects: vaultSourceObjects = [] } = useVaultObjects(vaultSourceId);
-const [vaultObjectId, setVaultObjectId] = useState<string | null>(null);
-const [isLoadingVaultContent, setIsLoadingVaultContent] = useState(false);
-const [loadedObjectLabel, setLoadedObjectLabel] = useState<string | null>(null);
+  const { vaults } = useVaults();
+  const [vaultSourceId, setVaultSourceId] = useState<string | null>(null);
+  const { objects: vaultSourceObjects = [] } = useVaultObjects(vaultSourceId);
+  const [vaultObjectId, setVaultObjectId] = useState<string | null>(null);
+  const [isLoadingVaultContent, setIsLoadingVaultContent] = useState(false);
+  const [loadedObjectLabel, setLoadedObjectLabel] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -160,10 +155,10 @@ const [loadedObjectLabel, setLoadedObjectLabel] = useState<string | null>(null);
   }, [formatResult]);
 
   const selectedTemplate = templateDetailData;
-const selectedVaultName = useMemo(
-  () => vaults.find((vault: any) => vault.id === vaultSourceId)?.name || "",
-  [vaults, vaultSourceId],
-);
+  const selectedVaultName = useMemo(
+    () => vaults.find((vault: any) => vault.id === vaultSourceId)?.name || "",
+    [vaults, vaultSourceId],
+  );
 
   const detectedVariables = useMemo(() => {
     const matches = documentContent.match(/\{\{(\w+)\}\}/g);
@@ -192,85 +187,87 @@ const selectedVaultName = useMemo(
     return payload;
   }, [documentContent, inputFormat, outputFormat, components]);
 
-useEffect(() => {
-  if (vaults.length && !vaultSourceId) {
-    setVaultSourceId(vaults[0]?.id || null);
-  }
-}, [vaults, vaultSourceId]);
-
-useEffect(() => {
-  if (!vaultSourceObjects.length) {
-    setVaultObjectId(null);
-    return;
-  }
-  if (!vaultObjectId || !vaultSourceObjects.some((object: any) => object.id === vaultObjectId)) {
-    setVaultObjectId(vaultSourceObjects[0]?.id || null);
-  }
-}, [vaultSourceObjects, vaultObjectId]);
-
-const loadDocumentFromVault = async () => {
-  if (!vaultSourceId || !vaultObjectId) {
-    toast.error("Select a vault and object to load");
-    return;
-  }
-  try {
-    setIsLoadingVaultContent(true);
-    let textPayload: string | null = null;
-    let derivedFormat: "md" | "json" | "text" = "text";
-
-    const textResponse = await fetch(`/api/vaults/${vaultSourceId}/objects/${vaultObjectId}/text`);
-    if (textResponse.ok) {
-      const data = await textResponse.json();
-      if (typeof data?.text === "string") {
-        textPayload = data.text;
-      }
+  useEffect(() => {
+    if (vaults.length && !vaultSourceId) {
+      setVaultSourceId(vaults[0]?.id || null);
     }
+  }, [vaults, vaultSourceId]);
 
-    if (!textPayload) {
-      const downloadResponse = await fetch(`/api/vaults/${vaultSourceId}/objects/${vaultObjectId}/download`);
-      if (!downloadResponse.ok) {
-        const error = await downloadResponse.json().catch(() => ({ error: "Unable to download object" }));
-        throw new Error(error.error || "Unable to download object");
-      }
-      const contentType = downloadResponse.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const json = await downloadResponse.json();
-        textPayload = JSON.stringify(json, null, 2);
-        derivedFormat = "json";
-      } else if (contentType.startsWith("text/") || contentType.includes("markdown")) {
-        textPayload = await downloadResponse.text();
-        derivedFormat = contentType.includes("markdown") ? "md" : "text";
-      } else {
-        throw new Error("Selected object is binary and cannot be loaded as text");
-      }
+  useEffect(() => {
+    if (!vaultSourceObjects.length) {
+      setVaultObjectId(null);
+      return;
     }
+    if (!vaultObjectId || !vaultSourceObjects.some((object: any) => object.id === vaultObjectId)) {
+      setVaultObjectId(vaultSourceObjects[0]?.id || null);
+    }
+  }, [vaultSourceObjects, vaultObjectId]);
 
-    const selectedObject = vaultSourceObjects.find((object: any) => object.id === vaultObjectId);
-    if (selectedObject?.filename) {
-      const lower = selectedObject.filename.toLowerCase();
-      if (lower.endsWith(".json")) {
-        derivedFormat = "json";
-      } else if (lower.endsWith(".md") || lower.endsWith(".markdown")) {
-        derivedFormat = "md";
-      } else if (lower.endsWith(".txt")) {
-        derivedFormat = "text";
+  const loadDocumentFromVault = async () => {
+    if (!vaultSourceId || !vaultObjectId) {
+      toast.error("Select a vault and object to load");
+      return;
+    }
+    try {
+      setIsLoadingVaultContent(true);
+      let textPayload: string | null = null;
+      let derivedFormat: "md" | "json" | "text" = "text";
+
+      const textResponse = await fetch(`/api/vaults/${vaultSourceId}/objects/${vaultObjectId}/text`);
+      if (textResponse.ok) {
+        const data = await textResponse.json();
+        if (typeof data?.text === "string") {
+          textPayload = data.text;
+        }
       }
-    }
 
-    if (!textPayload) {
-      throw new Error("No text available for this object");
-    }
+      if (!textPayload) {
+        const downloadResponse = await fetch(`/api/vaults/${vaultSourceId}/objects/${vaultObjectId}/download`);
+        if (!downloadResponse.ok) {
+          const error = await downloadResponse.json().catch(() => ({ error: "Unable to download object" }));
+          throw new Error(error.error || "Unable to download object");
+        }
+        const contentType = downloadResponse.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const json = await downloadResponse.json();
+          textPayload = JSON.stringify(json, null, 2);
+          derivedFormat = "json";
+        } else if (contentType.startsWith("text/") || contentType.includes("markdown")) {
+          textPayload = await downloadResponse.text();
+          derivedFormat = contentType.includes("markdown") ? "md" : "text";
+        } else {
+          throw new Error("Selected object is binary and cannot be loaded as text");
+        }
+      }
 
-    setInputFormat(derivedFormat);
-    setDocumentContent(textPayload);
-    setLoadedObjectLabel(`${selectedObject?.filename || "Object"}${selectedVaultName ? ` · ${selectedVaultName}` : ""}`);
-    toast.success("Loaded content from vault");
-  } catch (error: any) {
-    toast.error(error.message || "Failed to load document from vault");
-  } finally {
-    setIsLoadingVaultContent(false);
-  }
-};
+      const selectedObject = vaultSourceObjects.find((object: any) => object.id === vaultObjectId);
+      if (selectedObject?.filename) {
+        const lower = selectedObject.filename.toLowerCase();
+        if (lower.endsWith(".json")) {
+          derivedFormat = "json";
+        } else if (lower.endsWith(".md") || lower.endsWith(".markdown")) {
+          derivedFormat = "md";
+        } else if (lower.endsWith(".txt")) {
+          derivedFormat = "text";
+        }
+      }
+
+      if (!textPayload) {
+        throw new Error("No text available for this object");
+      }
+
+      setInputFormat(derivedFormat);
+      setDocumentContent(textPayload);
+      setLoadedObjectLabel(
+        `${selectedObject?.filename || "Object"}${selectedVaultName ? ` · ${selectedVaultName}` : ""}`,
+      );
+      toast.success("Loaded content from vault");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load document from vault");
+    } finally {
+      setIsLoadingVaultContent(false);
+    }
+  };
 
   const handleCreateTemplate = async () => {
     try {
@@ -417,7 +414,7 @@ const loadDocumentFromVault = async () => {
             <div className="flex w-1/2 flex-col gap-4">
               <Card className="flex-1">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <Notebook className="size-4" />
                     Document Source
                   </CardTitle>
@@ -430,7 +427,9 @@ const loadDocumentFromVault = async () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-foreground font-medium">Load from Vault</p>
-                        <p className="text-muted-foreground text-sm">Use processed text or JSON stored in your vaults.</p>
+                        <p className="text-muted-foreground text-sm">
+                          Use processed text or JSON stored in your vaults.
+                        </p>
                       </div>
                       {loadedObjectLabel && <Badge variant="secondary">{loadedObjectLabel}</Badge>}
                     </div>
@@ -452,7 +451,11 @@ const loadDocumentFromVault = async () => {
                       </div>
                       <div className="space-y-2">
                         <Label>Object</Label>
-                        <Select value={vaultObjectId ?? ""} onValueChange={setVaultObjectId} disabled={!vaultSourceObjects.length}>
+                        <Select
+                          value={vaultObjectId ?? ""}
+                          onValueChange={setVaultObjectId}
+                          disabled={!vaultSourceObjects.length}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select object" />
                           </SelectTrigger>
@@ -527,7 +530,7 @@ const loadDocumentFromVault = async () => {
                       className="min-h-[280px] font-mono text-sm"
                     />
                     {detectedVariables.length > 0 && (
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <div className="text-muted-foreground flex flex-wrap gap-2 text-xs">
                         <span>Detected variables:</span>
                         {detectedVariables.map((variable) => (
                           <Badge key={variable} variant="outline">
@@ -543,7 +546,7 @@ const loadDocumentFromVault = async () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2 text-foreground">
+                    <CardTitle className="text-foreground flex items-center gap-2">
                       <ListChecks className="size-4" />
                       Components
                     </CardTitle>
@@ -622,7 +625,7 @@ const loadDocumentFromVault = async () => {
                                   <div className="grid gap-2 md:grid-cols-2">
                                     {template.variables.map((variable) => (
                                       <div key={variable} className="space-y-1">
-                                        <Label className="text-xs text-muted-foreground">{variable}</Label>
+                                        <Label className="text-muted-foreground text-xs">{variable}</Label>
                                         <Input
                                           value={component.variables[variable] || ""}
                                           placeholder={`Value for ${variable}`}
@@ -680,7 +683,7 @@ const loadDocumentFromVault = async () => {
             <div className="flex w-1/2 flex-col gap-4">
               <Card className="flex-1">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <FileText className="size-4" />
                     Formatter Output
                   </CardTitle>
@@ -698,7 +701,7 @@ const loadDocumentFromVault = async () => {
                       {formatResult.contentType.includes("pdf") ? (
                         <iframe src={formatResult.url} className="h-[480px] w-full rounded border" />
                       ) : (
-                        <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center rounded border border-dashed bg-muted/30 text-sm">
+                        <div className="text-muted-foreground bg-muted/30 flex flex-1 flex-col items-center justify-center rounded border border-dashed text-sm">
                           DOCX preview not supported. Download the file to review.
                         </div>
                       )}
@@ -727,8 +730,8 @@ const loadDocumentFromVault = async () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                      <ScrollArea className="h-60 rounded border bg-muted/30 p-4 font-mono text-xs">
-                        <pre>{JSON.stringify(formatterPayload, null, 2)}</pre>
+                  <ScrollArea className="bg-muted/30 h-60 rounded border p-4 font-mono text-xs">
+                    <pre>{JSON.stringify(formatterPayload, null, 2)}</pre>
                   </ScrollArea>
                 </CardContent>
               </Card>
@@ -741,7 +744,9 @@ const loadDocumentFromVault = async () => {
                 <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <CardTitle className="text-foreground">Template Library</CardTitle>
-                    <CardDescription className="text-muted-foreground">Manage reusable caption blocks and styles.</CardDescription>
+                    <CardDescription className="text-muted-foreground">
+                      Manage reusable caption blocks and styles.
+                    </CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Select value={templateFilter} onValueChange={setTemplateFilter}>
@@ -822,9 +827,7 @@ const loadDocumentFromVault = async () => {
                             <Label>Content</Label>
                             <Textarea
                               value={newTemplate.content}
-                              onChange={(event) =>
-                                setNewTemplate((prev) => ({ ...prev, content: event.target.value }))
-                              }
+                              onChange={(event) => setNewTemplate((prev) => ({ ...prev, content: event.target.value }))}
                               className="min-h-[180px] font-mono text-sm"
                             />
                           </div>
@@ -832,9 +835,7 @@ const loadDocumentFromVault = async () => {
                             <Label>Styles (JSON)</Label>
                             <Textarea
                               value={newTemplate.styles}
-                              onChange={(event) =>
-                                setNewTemplate((prev) => ({ ...prev, styles: event.target.value }))
-                              }
+                              onChange={(event) => setNewTemplate((prev) => ({ ...prev, styles: event.target.value }))}
                               className="font-mono text-sm"
                             />
                           </div>
@@ -862,7 +863,7 @@ const loadDocumentFromVault = async () => {
                         {filteredTemplates.map((template) => (
                           <button
                             key={template.id}
-                            className={`rounded-lg border p-4 text-left transition hover:border-primary ${
+                            className={`hover:border-primary rounded-lg border p-4 text-left transition ${
                               selectedTemplateId === template.id ? "border-primary bg-primary/5" : "border-border"
                             }`}
                             onClick={() => setSelectedTemplateId(template.id)}
@@ -874,7 +875,7 @@ const loadDocumentFromVault = async () => {
                               </div>
                               <Badge variant="outline">{template.type}</Badge>
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground mt-2 flex flex-wrap gap-2 text-xs">
                               {template.variables?.map((variable) => (
                                 <Badge key={variable} variant="secondary">
                                   {variable}
@@ -925,14 +926,14 @@ const loadDocumentFromVault = async () => {
                       </div>
                       <div className="space-y-2 text-sm">
                         <p className="text-muted-foreground">Content</p>
-                        <ScrollArea className="h-64 rounded border bg-muted/30 p-4 font-mono text-xs">
+                        <ScrollArea className="bg-muted/30 h-64 rounded border p-4 font-mono text-xs">
                           <pre>{selectedTemplate.content}</pre>
                         </ScrollArea>
                       </div>
                       {selectedTemplate.styles && (
                         <div className="space-y-2 text-sm">
                           <p className="text-muted-foreground">Styles</p>
-                          <ScrollArea className="h-40 rounded border bg-muted/30 p-4 font-mono text-xs">
+                          <ScrollArea className="bg-muted/30 h-40 rounded border p-4 font-mono text-xs">
                             <pre>{JSON.stringify(selectedTemplate.styles, null, 2)}</pre>
                           </ScrollArea>
                         </div>
@@ -1037,4 +1038,3 @@ const loadDocumentFromVault = async () => {
     </div>
   );
 }
-

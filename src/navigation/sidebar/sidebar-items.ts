@@ -13,6 +13,9 @@ import {
   Box,
   ScrollText,
   Search,
+  MessageSquare,
+  Table2,
+  Brain,
   type LucideIcon,
 } from "lucide-react";
 
@@ -55,6 +58,24 @@ export const sidebarItems: NavGroup[] = [
         title: "Case Management",
         url: "/dashboard/cases",
         icon: Briefcase,
+      },
+      {
+        title: "Agent Chat",
+        url: "/dashboard/agent",
+        icon: MessageSquare,
+        isNew: true,
+      },
+      {
+        title: "Table Analysis",
+        url: "/dashboard/tables",
+        icon: Table2,
+        isNew: true,
+      },
+      {
+        title: "Deep Research",
+        url: "/dashboard/research",
+        icon: Brain,
+        isNew: true,
       },
     ],
   },

@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const results = models.map((model: any) => {
       // Estimate VRAM based on model name/size
       const vram = estimateVram(model.id);
-      
+
       return {
         id: model.id,
         name: model.id.split("/").pop(),
@@ -52,17 +52,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(results);
   } catch (error) {
     console.error("HuggingFace models error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch models" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch models" }, { status: 500 });
   }
 }
 
 // Estimate VRAM requirements based on model name
 function estimateVram(modelId: string): number {
   const id = modelId.toLowerCase();
-  
+
   // Extract size from model name
   if (id.includes("70b") || id.includes("72b")) return 140;
   if (id.includes("65b")) return 130;
@@ -78,26 +75,25 @@ function estimateVram(modelId: string): number {
   if (id.includes("2b")) return 5;
   if (id.includes("1b") || id.includes("1.5b")) return 4;
   if (id.includes("500m") || id.includes("350m")) return 2;
-  
+
   return 16; // Default estimate
 }
 
 // Extract parameter count from model name
 function extractParams(modelId: string): string {
   const id = modelId.toLowerCase();
-  
+
   const patterns = [
-    /(\d+\.?\d*)b/i,  // 7b, 70b, 1.5b
-    /(\d+)m/i,        // 350m, 500m
+    /(\d+\.?\d*)b/i, // 7b, 70b, 1.5b
+    /(\d+)m/i, // 350m, 500m
   ];
-  
+
   for (const pattern of patterns) {
     const match = id.match(pattern);
     if (match) {
       return match[0].toUpperCase();
     }
   }
-  
+
   return "Unknown";
 }
-

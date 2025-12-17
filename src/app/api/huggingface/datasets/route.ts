@@ -44,10 +44,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(results);
   } catch (error) {
     console.error("HuggingFace datasets error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch datasets" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch datasets" }, { status: 500 });
   }
 }
-

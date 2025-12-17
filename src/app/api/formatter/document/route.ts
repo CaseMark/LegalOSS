@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { requireAuth } from "@/lib/auth/session";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await upstream.arrayBuffer();
     const contentType = upstream.headers.get("content-type") || "application/octet-stream";
     const contentDisposition =
-      upstream.headers.get("content-disposition") || `attachment; filename=\"formatted.${body?.output_format || "pdf"}\"`;
+      upstream.headers.get("content-disposition") ||
+      `attachment; filename=\"formatted.${body?.output_format || "pdf"}\"`;
 
     return new NextResponse(arrayBuffer, {
       status: 200,
@@ -48,8 +50,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to format document" }, { status: 500 });
   }
 }
-
-
-
-
-

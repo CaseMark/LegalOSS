@@ -33,14 +33,14 @@ export async function GET(request: Request) {
 
         const data = await response.json();
         // Map API fields to frontend interface
-        return (data.objects || []).map((obj: any) => ({ 
+        return (data.objects || []).map((obj: any) => ({
           id: obj.id,
           name: obj.filename,
           type: obj.contentType,
           size: obj.sizeBytes || 0,
           ingestionStatus: obj.ingestionStatus,
           createdAt: obj.createdAt,
-          vaultId 
+          vaultId,
         }));
       } catch (error) {
         console.error(`Error fetching objects for vault ${vaultId}:`, error);
@@ -54,10 +54,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ objects: allObjects });
   } catch (error) {
     console.error("Error fetching multi-vault objects:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch objects" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch objects" }, { status: 500 });
   }
 }
-

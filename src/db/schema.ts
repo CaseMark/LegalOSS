@@ -293,3 +293,105 @@ export type OCRJob = typeof ocrJobs.$inferSelect;
 export type NewOCRJob = typeof ocrJobs.$inferInsert;
 export type TranscriptionJob = typeof transcriptionJobs.$inferSelect;
 export type NewTranscriptionJob = typeof transcriptionJobs.$inferInsert;
+
+// ==================== CHAT & MESSAGES ====================
+
+export const chats = pgTable("chats", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  caseId: text("case_id").references(() => cases.id, { onDelete: "set null" }),
+  title: text("title").notNull().default("New Chat"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+  id: text("id").primaryKey(),
+  chatId: text("chat_id")
+    .notNull()
+    .references(() => chats.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // 'user', 'assistant'
+  content: text("content").notNull(), // JSON string with parts
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ==================== ARTIFACTS ====================
+
+export const artifacts = pgTable("artifacts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  caseId: text("case_id").references(() => cases.id, { onDelete: "set null" }),
+  chatId: text("chat_id").references(() => chats.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  content: text("content"),
+  kind: text("kind").notNull().default("text"), // text, memo, letter, brief, contract, summary
+  version: integer("version").notNull().default(1),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ==================== TABULAR ANALYSIS ====================
+
+export const tabularAnalyses = pgTable("tabular_analyses", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  caseId: text("case_id").references(() => cases.id, { onDelete: "set null" }),
+  vaultId: text("vault_id").references(() => vaults.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  documentIds: text("document_ids").notNull(), // JSON array of vault object IDs
+  columns: text("columns").notNull(), // JSON array of ExtractionColumn
+  modelId: text("model_id").default("anthropic/claude-sonnet-4.5"),
+  status: text("status").notNull().default("draft"), // draft, processing, completed, failed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const tabularAnalysisRows = pgTable("tabular_analysis_rows", {
+  id: text("id").primaryKey(),
+  analysisId: text("analysis_id")
+    .notNull()
+    .references(() => tabularAnalyses.id, { onDelete: "cascade" }),
+  documentId: text("document_id").notNull(), // Vault object ID
+  data: text("data").notNull(), // JSON of cell values
+  tokensUsed: integer("tokens_used").default(0),
+  extractedAt: timestamp("extracted_at"),
+});
+
+// Types for new tables
+export type Chat = typeof chats.$inferSelect;
+export type NewChat = typeof chats.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
+export type Artifact = typeof artifacts.$inferSelect;
+export type NewArtifact = typeof artifacts.$inferInsert;
+export type TabularAnalysis = typeof tabularAnalyses.$inferSelect;
+export type NewTabularAnalysis = typeof tabularAnalyses.$inferInsert;
+export type TabularAnalysisRow = typeof tabularAnalysisRows.$inferSelect;
+export type NewTabularAnalysisRow = typeof tabularAnalysisRows.$inferInsert;
+
+// Extraction column type for tabular analysis
+export interface ExtractionColumn {
+  id: string;
+  name: string;
+  prompt: string;
+  dataType: "text" | "number" | "date" | "boolean";
+  order: number;
+  modelId?: string;
+}
+
+// Cell value type for tabular analysis
+export interface CellValue {
+  value: string | number | boolean | null;
+  confidence?: number;
+  sources?: string[];
+  reasoning?: string;
+  error?: string;
+  tokensUsed?: number;
+}

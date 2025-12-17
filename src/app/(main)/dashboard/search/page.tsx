@@ -1,26 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Sparkles, BookOpen, Send, ExternalLink, Clock, Loader2, Copy, Check } from "lucide-react";
-import useSWR from "swr";
-import { Streamdown } from "streamdown";
 
-import { Button } from "@/components/ui/button";
+import { Search, Sparkles, BookOpen, Send, ExternalLink, Clock, Loader2, Copy, Check } from "lucide-react";
+import { Streamdown } from "streamdown";
+import useSWR from "swr";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -164,14 +155,14 @@ export default function SearchPage() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="grid min-h-0 w-full gap-0 md:grid-cols-[400px_1fr]">
           {/* Left Panel - Search Controls */}
-          <div className="flex flex-col border-r bg-muted/30">
-            <div className="flex-none p-6 space-y-6">
+          <div className="bg-muted/30 flex flex-col border-r">
+            <div className="flex-none space-y-6 p-6">
               {/* Search Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Query</label>
                 <InputGroup className="h-auto">
                   <InputGroupAddon align="inline-start">
-                    <Search className="size-4 text-muted-foreground" />
+                    <Search className="text-muted-foreground size-4" />
                   </InputGroupAddon>
                   <InputGroupInput
                     placeholder="Enter your search query..."
@@ -201,7 +192,7 @@ export default function SearchPage() {
                         <Search className="size-4" />
                         <div className="text-left">
                           <div className="font-medium">Search</div>
-                          <div className="text-xs text-muted-foreground">Find relevant web results</div>
+                          <div className="text-muted-foreground text-xs">Find relevant web results</div>
                         </div>
                       </div>
                     </SelectItem>
@@ -210,7 +201,7 @@ export default function SearchPage() {
                         <Sparkles className="size-4" />
                         <div className="text-left">
                           <div className="font-medium">Answer</div>
-                          <div className="text-xs text-muted-foreground">AI-generated answer from search</div>
+                          <div className="text-muted-foreground text-xs">AI-generated answer from search</div>
                         </div>
                       </div>
                     </SelectItem>
@@ -219,7 +210,7 @@ export default function SearchPage() {
                         <BookOpen className="size-4" />
                         <div className="text-left">
                           <div className="font-medium">Deep Research</div>
-                          <div className="text-xs text-muted-foreground">Comprehensive research report</div>
+                          <div className="text-muted-foreground text-xs">Comprehensive research report</div>
                         </div>
                       </div>
                     </SelectItem>
@@ -263,7 +254,7 @@ export default function SearchPage() {
                         <SelectItem key={model.value} value={model.value}>
                           <div>
                             <div className="font-medium">{model.label}</div>
-                            <div className="text-xs text-muted-foreground">{model.description}</div>
+                            <div className="text-muted-foreground text-xs">{model.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -273,12 +264,7 @@ export default function SearchPage() {
               )}
 
               {/* Search Button */}
-              <Button 
-                onClick={handleSearch} 
-                disabled={isLoading || !query.trim()} 
-                className="w-full"
-                size="lg"
-              >
+              <Button onClick={handleSearch} disabled={isLoading || !query.trim()} className="w-full" size="lg">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 size-4 animate-spin" />
@@ -294,7 +280,7 @@ export default function SearchPage() {
 
               {/* Error Display */}
               {error && (
-                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="border-destructive/50 bg-destructive/10 text-destructive rounded-lg border p-3 text-sm">
                   {error}
                 </div>
               )}
@@ -305,33 +291,27 @@ export default function SearchPage() {
             {/* Search Results List (for search mode) */}
             {mode === "search" && searchResults.length > 0 && (
               <ScrollArea className="flex-1">
-                <div className="p-4 space-y-3">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {searchResults.length} results found
-                  </div>
+                <div className="space-y-3 p-4">
+                  <div className="text-muted-foreground text-sm font-medium">{searchResults.length} results found</div>
                   {searchResults.map((result, index) => (
                     <a
                       key={result.id || index}
                       href={result.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg border bg-card p-3 transition-colors hover:bg-accent"
+                      className="bg-card hover:bg-accent block rounded-lg border p-3 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-medium text-sm line-clamp-2">{result.title}</h3>
-                        <ExternalLink className="size-3.5 flex-shrink-0 text-muted-foreground" />
+                        <h3 className="line-clamp-2 text-sm font-medium">{result.title}</h3>
+                        <ExternalLink className="text-muted-foreground size-3.5 flex-shrink-0" />
                       </div>
                       {result.publishedDate && (
-                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
                           <Clock className="size-3" />
                           {new Date(result.publishedDate).toLocaleDateString()}
                         </div>
                       )}
-                      {result.text && (
-                        <p className="mt-2 text-xs text-muted-foreground line-clamp-3">
-                          {result.text}
-                        </p>
-                      )}
+                      {result.text && <p className="text-muted-foreground mt-2 line-clamp-3 text-xs">{result.text}</p>}
                     </a>
                   ))}
                 </div>
@@ -340,15 +320,15 @@ export default function SearchPage() {
           </div>
 
           {/* Right Panel - Artifact Output */}
-          <div className="flex flex-col min-h-0 overflow-hidden bg-background">
+          <div className="bg-background flex min-h-0 flex-col overflow-hidden">
             {hasResults ? (
               <>
                 {/* Artifact Header */}
-                <div className="flex-none flex items-center justify-between border-b px-6 py-3">
+                <div className="flex flex-none items-center justify-between border-b px-6 py-3">
                   <div className="flex items-center gap-2">
-                    {mode === "search" && <Search className="size-4 text-muted-foreground" />}
-                    {mode === "answer" && <Sparkles className="size-4 text-primary" />}
-                    {mode === "research" && <BookOpen className="size-4 text-primary" />}
+                    {mode === "search" && <Search className="text-muted-foreground size-4" />}
+                    {mode === "answer" && <Sparkles className="text-primary size-4" />}
+                    {mode === "research" && <BookOpen className="text-primary size-4" />}
                     <span className="font-medium">
                       {mode === "search" ? "Search Results" : mode === "answer" ? "AI Answer" : "Research Report"}
                     </span>
@@ -366,7 +346,7 @@ export default function SearchPage() {
                 </div>
 
                 {/* Artifact Content */}
-                <ScrollArea className="flex-1 min-h-0">
+                <ScrollArea className="min-h-0 flex-1">
                   <div className="p-6 pb-12">
                     {mode === "search" && searchResults.length > 0 && (
                       <div className="space-y-6">
@@ -376,15 +356,13 @@ export default function SearchPage() {
                               href={result.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="group flex items-center gap-2 text-primary hover:underline"
+                              className="group text-primary flex items-center gap-2 hover:underline"
                             >
                               <h3 className="font-semibold">{result.title}</h3>
-                              <ExternalLink className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <ExternalLink className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
                             </a>
-                            <p className="text-sm text-muted-foreground">{result.url}</p>
-                            {result.text && (
-                              <p className="text-sm">{result.text}</p>
-                            )}
+                            <p className="text-muted-foreground text-sm">{result.url}</p>
+                            {result.text && <p className="text-sm">{result.text}</p>}
                             {index < searchResults.length - 1 && <Separator className="mt-4" />}
                           </div>
                         ))}
@@ -401,9 +379,9 @@ export default function SearchPage() {
                       <div className="space-y-4">
                         {researchStatus.status === "running" || researchStatus.status === "pending" ? (
                           <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <Loader2 className="size-8 animate-spin text-primary mb-4" />
+                            <Loader2 className="text-primary mb-4 size-8 animate-spin" />
                             <h3 className="font-medium">Research in Progress</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-muted-foreground mt-1 text-sm">
                               Deep research takes 1-3 minutes to complete...
                             </p>
                           </div>
@@ -412,13 +390,11 @@ export default function SearchPage() {
                             <Streamdown>{researchStatus.output.content}</Streamdown>
                           </div>
                         ) : researchStatus.status === "failed" ? (
-                          <div className="text-center py-12 text-destructive">
-                            Research failed. Please try again.
-                          </div>
+                          <div className="text-destructive py-12 text-center">Research failed. Please try again.</div>
                         ) : null}
-                        
+
                         {researchStatus.costDollars && researchStatus.status === "completed" && (
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground border-t pt-4 mt-6">
+                          <div className="text-muted-foreground mt-6 flex items-center gap-4 border-t pt-4 text-xs">
                             <span>Pages analyzed: {researchStatus.costDollars.numPages}</span>
                             <span>Searches: {researchStatus.costDollars.numSearches}</span>
                             <span>Cost: ${researchStatus.costDollars.total.toFixed(4)}</span>
@@ -432,25 +408,31 @@ export default function SearchPage() {
             ) : (
               /* Empty State */
               <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-                <div className="rounded-full bg-muted p-4 mb-4">
-                  <Search className="size-8 text-muted-foreground" />
+                <div className="bg-muted mb-4 rounded-full p-4">
+                  <Search className="text-muted-foreground size-8" />
                 </div>
                 <h3 className="text-lg font-medium">Ready to Search</h3>
                 <p className="text-muted-foreground mt-2 max-w-md text-sm">
                   Enter a query and choose your search mode. Results will appear here.
                 </p>
                 <div className="mt-6 grid gap-3 text-left text-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-3">
                     <Search className="size-4" />
-                    <span><strong>Search</strong> - Fast web results</span>
+                    <span>
+                      <strong>Search</strong> - Fast web results
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-3">
                     <Sparkles className="size-4" />
-                    <span><strong>Answer</strong> - AI synthesizes results</span>
+                    <span>
+                      <strong>Answer</strong> - AI synthesizes results
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-3">
                     <BookOpen className="size-4" />
-                    <span><strong>Research</strong> - Deep analysis report</span>
+                    <span>
+                      <strong>Research</strong> - Deep analysis report
+                    </span>
                   </div>
                 </div>
               </div>
@@ -461,4 +443,3 @@ export default function SearchPage() {
     </div>
   );
 }
-

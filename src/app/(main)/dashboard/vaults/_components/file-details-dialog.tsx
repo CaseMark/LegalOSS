@@ -1,15 +1,20 @@
 "use client";
 
-import { FileText, Check, Clock, AlertCircle, Loader2, Database, Hash, Calendar, HardDrive, FileType } from "lucide-react";
+import {
+  FileText,
+  Check,
+  Clock,
+  AlertCircle,
+  Loader2,
+  Database,
+  Hash,
+  Calendar,
+  HardDrive,
+  FileType,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
 interface FileDetails {
@@ -56,7 +61,13 @@ export function FileDetailsDialog({ open, onOpenChange, file }: FileDetailsDialo
         return { label: "Completed", icon: Check, variant: "default" as const, color: "text-green-600" };
       case "processing":
       case "ingesting":
-        return { label: "Processing", icon: Loader2, variant: "secondary" as const, color: "text-blue-600", animate: true };
+        return {
+          label: "Processing",
+          icon: Loader2,
+          variant: "secondary" as const,
+          color: "text-blue-600",
+          animate: true,
+        };
       case "failed":
       case "error":
         return { label: "Failed", icon: AlertCircle, variant: "destructive" as const, color: "text-red-600" };
@@ -161,21 +172,21 @@ export function FileDetailsDialog({ open, onOpenChange, file }: FileDetailsDialo
             <h4 className="mb-3 text-sm font-medium">File Information</h4>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-2">
                   <HardDrive className="size-4" />
                   <span className="text-sm">Size</span>
                 </div>
                 <span className="text-sm font-medium">{file.size}</span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-2">
                   <FileType className="size-4" />
                   <span className="text-sm">Type</span>
                 </div>
                 <span className="text-sm font-medium">{file.contentType}</span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-2">
                   <Calendar className="size-4" />
                   <span className="text-sm">Uploaded</span>
                 </div>
@@ -183,7 +194,7 @@ export function FileDetailsDialog({ open, onOpenChange, file }: FileDetailsDialo
               </div>
               {file.ingestionCompletedAt && (
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-2">
                     <Check className="size-4" />
                     <span className="text-sm">Indexed</span>
                   </div>
@@ -204,4 +215,3 @@ export function FileDetailsDialog({ open, onOpenChange, file }: FileDetailsDialo
     </Dialog>
   );
 }
-

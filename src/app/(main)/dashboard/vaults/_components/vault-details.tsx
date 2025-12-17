@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { ArrowLeft, Download, FileText, MoreVertical, RefreshCw, Search, Trash2, Upload, Zap } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,8 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVault, useVaultObjects } from "@/lib/hooks/use-vaults";
 
 import { FileDetailsDialog } from "./file-details-dialog";
-import { UploadFileDialog } from "./upload-file-dialog";
 import { SearchDialog } from "./search-dialog";
+import { UploadFileDialog } from "./upload-file-dialog";
 
 interface VaultDetailsProps {
   vaultId: string;

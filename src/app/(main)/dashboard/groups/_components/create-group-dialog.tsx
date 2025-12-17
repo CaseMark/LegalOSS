@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
+import { Textarea } from "@/components/ui/textarea";
 import { DEFAULT_USER_PERMISSIONS } from "@/lib/auth/permissions";
 
 const formSchema = z.object({
@@ -231,4 +231,3 @@ export function CreateGroupDialog({ open, onOpenChange, onSuccess }: CreateGroup
     </Dialog>
   );
 }
-

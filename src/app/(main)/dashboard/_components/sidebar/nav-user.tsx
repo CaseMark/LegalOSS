@@ -4,6 +4,7 @@ import { EllipsisVertical, Shield, User as UserIcon, LogOut } from "lucide-react
 import { useSession, signOut } from "next-auth/react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { getInitials } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 export function NavUser() {
   const { isMobile } = useSidebar();

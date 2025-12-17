@@ -2,10 +2,12 @@
  * Group/Team Management - Open WebUI Pattern
  * Custom groups with permission matrices
  */
-import { getDb } from "@/db";
-import { groups, userGroups } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+
+import { getDb } from "@/db";
+import { groups, userGroups } from "@/db/schema";
+
 import type { Permissions } from "./permissions";
 
 /**

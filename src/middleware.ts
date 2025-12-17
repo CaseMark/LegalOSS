@@ -1,7 +1,7 @@
 /**
  * Middleware for route protection
  * Lightweight token check (Edge runtime compatible)
- * 
+ *
  * DEV MODE: When IS_DEV=true, auth is completely bypassed
  */
 import { NextResponse } from "next/server";

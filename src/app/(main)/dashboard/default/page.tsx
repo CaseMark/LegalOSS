@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { FolderLock, ScanText, Mic, FileText } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { ActivityLog } from "../_components/activity-log";
 import { StatsCards } from "../_components/stats-cards";
 

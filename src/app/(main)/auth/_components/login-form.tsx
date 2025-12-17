@@ -98,7 +98,7 @@ export function LoginForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {isDevMode && (
-          <div className="bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-md border p-3 text-sm">
+          <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
             <strong>🔧 Dev Mode</strong> — Credentials pre-filled. Just click Login!
           </div>
         )}

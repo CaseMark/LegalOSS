@@ -7,27 +7,14 @@ interface AppHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export function AppHeader({
-  title,
-  description,
-  children,
-  className,
-  ...props
-}: AppHeaderProps) {
+export function AppHeader({ title, description, children, className, ...props }: AppHeaderProps) {
   return (
     <div className={cn("flex items-center justify-between px-2 py-2", className)} {...props}>
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="text-muted-foreground text-sm">{description}</p>}
       </div>
       {children && <div className="flex items-center gap-2">{children}</div>}
     </div>
   );
 }
-
-
-
-
-

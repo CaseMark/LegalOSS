@@ -2,9 +2,10 @@
  * Case Access Control - Group-scoped permissions
  * Following Open WebUI's access control pattern
  */
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { cases, userGroups } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 interface CaseWithAccess {
   id: string;

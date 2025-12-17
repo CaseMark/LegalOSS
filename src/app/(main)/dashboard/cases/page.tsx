@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Briefcase, Plus, Calendar, AlertCircle, CheckCircle } from "lucide-react";
-import useSWR from "swr";
+
 import Link from "next/link";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Briefcase, Plus, Calendar, AlertCircle, CheckCircle } from "lucide-react";
+import useSWR from "swr";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { CreateCaseDialog } from "./_components/create-case-dialog";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

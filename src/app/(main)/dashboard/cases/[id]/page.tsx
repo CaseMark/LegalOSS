@@ -1,18 +1,21 @@
 "use client";
 
 import { use } from "react";
-import { ArrowLeft, Calendar, FileText, Users, CheckSquare, Brain, Plus } from "lucide-react";
-import useSWR from "swr";
+
 import Link from "next/link";
 
+import { ArrowLeft, Calendar, FileText, Users, CheckSquare, Brain, Plus } from "lucide-react";
+import useSWR from "swr";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TimelineTab } from "./_components/timeline-tab";
-import { TasksTab } from "./_components/tasks-tab";
-import { PartiesTab } from "./_components/parties-tab";
+
 import { DocumentsTab } from "./_components/documents-tab";
+import { PartiesTab } from "./_components/parties-tab";
+import { TasksTab } from "./_components/tasks-tab";
+import { TimelineTab } from "./_components/timeline-tab";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

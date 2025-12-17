@@ -1,13 +1,15 @@
 /**
  * Auth utilities - Password hashing, user authentication
- * 
+ *
  * Note: For user creation, use the setup module directly.
  * This module focuses on authentication and user lookup.
  */
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+
 import { checkHasUsers, isSetupComplete } from "./setup";
 
 /**
@@ -32,15 +34,11 @@ export async function isSignupEnabled(): Promise<boolean> {
   if (!(await isSetupComplete())) {
     return true;
   }
-  
+
   try {
     const db = await getDb();
     const { settings } = await import("@/db/schema");
-    const setting = await db
-      .select()
-      .from(settings)
-      .where(eq(settings.key, "ENABLE_SIGNUP"))
-      .limit(1);
+    const setting = await db.select().from(settings).where(eq(settings.key, "ENABLE_SIGNUP")).limit(1);
 
     if (!setting.length) {
       return false; // Default to disabled after setup
@@ -61,11 +59,7 @@ export async function authenticateUser(
 ): Promise<{ id: string; email: string; name: string; role: string } | null> {
   try {
     const db = await getDb();
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email.toLowerCase().trim()))
-      .limit(1);
+    const user = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
 
     if (!user.length) {
       return null;
@@ -77,10 +71,7 @@ export async function authenticateUser(
     }
 
     // Update last active
-    await db
-      .update(users)
-      .set({ lastActiveAt: new Date() })
-      .where(eq(users.id, user[0].id));
+    await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, user[0].id));
 
     return {
       id: user[0].id,
@@ -100,11 +91,7 @@ export async function authenticateUser(
 export async function getUserById(id: string) {
   try {
     const db = await getDb();
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, id))
-      .limit(1);
+    const user = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return user[0] || null;
   } catch {
     return null;
@@ -117,11 +104,7 @@ export async function getUserById(id: string) {
 export async function getUserByEmail(email: string) {
   try {
     const db = await getDb();
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email.toLowerCase().trim()))
-      .limit(1);
+    const user = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
     return user[0] || null;
   } catch {
     return null;
@@ -141,8 +124,7 @@ export function isAdmin(user: { role: string }): boolean {
 export function canAccess(user: { role: string }, requiredRole: string): boolean {
   const roleHierarchy = { admin: 3, user: 2, pending: 1 };
   return (
-    roleHierarchy[user.role as keyof typeof roleHierarchy] >= 
-    roleHierarchy[requiredRole as keyof typeof roleHierarchy]
+    roleHierarchy[user.role as keyof typeof roleHierarchy] >= roleHierarchy[requiredRole as keyof typeof roleHierarchy]
   );
 }
 

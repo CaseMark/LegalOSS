@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+
 import { getSetupStatus } from "@/lib/auth/setup";
 
 /**
  * GET /api/auth/status
  * Check auth status (for registration page)
- * 
+ *
  * Returns the current system setup state:
  * - isFirstUser: true if no admin exists yet
  * - signupEnabled: true if regular signup is allowed
@@ -14,7 +15,7 @@ import { getSetupStatus } from "@/lib/auth/setup";
 export async function GET() {
   try {
     const status = await getSetupStatus();
-    
+
     return NextResponse.json({
       hasUsers: !status.isFirstUser,
       signupEnabled: status.signupEnabled,
@@ -24,7 +25,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[Auth Status] Unexpected error:", error);
-    
+
     // Default to first-user mode to allow initial setup
     return NextResponse.json({
       hasUsers: false,

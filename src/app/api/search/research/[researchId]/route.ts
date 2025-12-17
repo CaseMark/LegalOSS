@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { requirePermission } from "@/lib/auth/session";
 
 const CASE_API_URL = process.env.CASE_API_URL || "https://api.case.dev";
@@ -27,7 +28,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ research
       const error = await response.json().catch(() => ({ message: "Failed to get research status" }));
       return NextResponse.json(
         { error: error.message || "Failed to get research status", data: error.data },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -41,4 +42,3 @@ export async function GET(req: Request, { params }: { params: Promise<{ research
     return NextResponse.json({ error: "Failed to get research status" }, { status: 500 });
   }
 }
-

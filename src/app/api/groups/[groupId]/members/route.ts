@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/session";
+
 import { addUserToGroup, removeUserFromGroup } from "@/lib/auth/groups";
+import { requireAdmin } from "@/lib/auth/session";
 
 /**
  * POST /api/groups/[groupId]/members - Add user to group

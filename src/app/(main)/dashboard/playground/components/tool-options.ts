@@ -1,4 +1,15 @@
-import { Search, Database, FileText, Zap, FolderLock, FolderPlus, GitBranch, Globe, MessageSquare, BookOpen } from "lucide-react";
+import {
+  Search,
+  Database,
+  FileText,
+  Zap,
+  FolderLock,
+  FolderPlus,
+  GitBranch,
+  Globe,
+  MessageSquare,
+  BookOpen,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface ToolOption {

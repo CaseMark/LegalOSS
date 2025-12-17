@@ -3,16 +3,17 @@ import Link from "next/link";
 import { Landmark } from "lucide-react";
 
 import { APP_CONFIG } from "@/config/app-config";
+
 import { LoginForm } from "../../_components/login-form";
 
 export default function LoginV1() {
   return (
     <div className="flex h-dvh">
-      <div className="relative hidden lg:block lg:w-1/3 overflow-hidden">
+      <div className="relative hidden overflow-hidden lg:block lg:w-1/3">
         {/* Background Image - height-fixed to always show the memorial */}
-        <div 
-          className="absolute inset-0 bg-no-repeat bg-bottom"
-          style={{ 
+        <div
+          className="absolute inset-0 bg-bottom bg-no-repeat"
+          style={{
             backgroundImage: "url('/images/lincoln-memorial-night.jpg')",
             backgroundSize: "auto 100%",
           }}
@@ -22,11 +23,13 @@ export default function LoginV1() {
         {/* Content */}
         <div className="relative flex h-full flex-col items-center justify-center p-12 text-center">
           <div className="space-y-6">
-            <Landmark className="text-white mx-auto size-12" />
+            <Landmark className="mx-auto size-12 text-white" />
             <div className="space-y-2">
-              <h1 className="text-white text-6xl font-normal font-[family-name:var(--font-instrument-serif)] italic">{APP_CONFIG.name}</h1>
-              <p className="text-white/80 text-xl">Welcome Back</p>
-              <p className="text-white/70 text-sm">Access your Legal AI workspace</p>
+              <h1 className="font-[family-name:var(--font-instrument-serif)] text-6xl font-normal text-white italic">
+                {APP_CONFIG.name}
+              </h1>
+              <p className="text-xl text-white/80">Welcome Back</p>
+              <p className="text-sm text-white/70">Access your Legal AI workspace</p>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import useSWR from "swr";
 import { FolderLock, ScanText, Mic, Volume2, MessageSquare, TrendingUp } from "lucide-react";
+import useSWR from "swr";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 

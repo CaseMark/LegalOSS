@@ -46,41 +46,41 @@ export function RegisterForm() {
     try {
       const res = await fetch("/api/auth/status");
       if (!res.ok) throw new Error("Status check failed");
-      
-      const data = await res.json() as AuthStatus;
-      
+
+      const data = (await res.json()) as AuthStatus;
+
       // Validate response has expected fields
       if (typeof data.hasUsers !== "boolean" || typeof data.signupEnabled !== "boolean") {
         throw new Error("Invalid status response");
       }
-      
+
       return data;
     } catch (err) {
       console.warn(`[RegisterForm] Status check attempt ${attempt} failed:`, err);
-      
+
       // Retry up to 3 times with exponential backoff
       if (attempt < 3) {
-        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
         return checkStatus(attempt + 1);
       }
-      
+
       return null;
     }
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    
+
     const init = async () => {
       setIsCheckingStatus(true);
-      
+
       const status = await checkStatus();
-      
+
       if (!mounted) return;
-      
+
       if (status) {
         setAuthStatus(status);
-        
+
         // If setup is in progress elsewhere, poll for completion
         if (status.setupInProgress) {
           toast.info("Setup in progress...", {
@@ -90,7 +90,7 @@ export function RegisterForm() {
           setTimeout(init, 2000);
           return;
         }
-        
+
         // Only redirect if we're CERTAIN users exist and signup is disabled
         if (status.hasUsers === true && status.signupEnabled === false) {
           toast.info("Signup is disabled", {
@@ -105,13 +105,15 @@ export function RegisterForm() {
         console.log("[RegisterForm] Defaulting to first-user mode");
         setAuthStatus({ hasUsers: false, signupEnabled: true, isFirstUser: true });
       }
-      
+
       setIsCheckingStatus(false);
     };
-    
+
     init();
-    
-    return () => { mounted = false; };
+
+    return () => {
+      mounted = false;
+    };
   }, [checkStatus, retryCount]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -153,10 +155,10 @@ export function RegisterForm() {
         toast.info("Please wait...", {
           description: "Setup is being finalized. Retrying automatically.",
         });
-        
+
         // Wait and retry
-        await new Promise(resolve => setTimeout(resolve, result.retryAfter * 1000));
-        setRetryCount(prev => prev + 1);
+        await new Promise((resolve) => setTimeout(resolve, result.retryAfter * 1000));
+        setRetryCount((prev) => prev + 1);
         setIsLoading(false);
         return;
       }
@@ -185,7 +187,7 @@ export function RegisterForm() {
       });
 
       // Small delay to ensure database has synced
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Auto-login the user
       const { signIn } = await import("next-auth/react");
@@ -202,14 +204,14 @@ export function RegisterForm() {
       } else {
         // Retry login once after a short delay
         console.log("[RegisterForm] First login attempt failed, retrying...");
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         const retryResult = await signIn("credentials", {
           email: data.email,
           password: data.password,
           redirect: false,
         });
-        
+
         if (retryResult?.ok) {
           window.location.href = "/dashboard/default";
         } else {
@@ -250,7 +252,7 @@ export function RegisterForm() {
             <strong>Welcome!</strong> You&apos;re creating the first admin account.
           </div>
         )}
-        
+
         <FormField
           control={form.control}
           name="email"
@@ -258,13 +260,13 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="you@example.com" 
-                  autoComplete="email" 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
                   disabled={isLoading}
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -278,13 +280,13 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  autoComplete="new-password" 
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
                   disabled={isLoading}
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -317,8 +319,10 @@ export function RegisterForm() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {authStatus?.isFirstUser ? "Creating Admin..." : "Creating Account..."}
             </>
+          ) : authStatus?.isFirstUser ? (
+            "Create Admin Account"
           ) : (
-            authStatus?.isFirstUser ? "Create Admin Account" : "Register"
+            "Register"
           )}
         </Button>
       </form>

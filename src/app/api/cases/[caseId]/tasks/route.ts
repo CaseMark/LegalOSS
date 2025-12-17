@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
+
 import { getDb } from "@/db";
 import { cases, caseTasks } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/session";
 import { canAccessCase } from "@/lib/case-management/access";
-import { eq } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
 
 /**
  * POST /api/cases/[caseId]/tasks - Create task

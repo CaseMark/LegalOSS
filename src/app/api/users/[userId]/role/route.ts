@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { eq } from "drizzle-orm";
+
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
-import { eq } from "drizzle-orm";
 
 /**
  * PATCH /api/users/[userId]/role - Update user role (admin only)

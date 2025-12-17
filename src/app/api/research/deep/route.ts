@@ -357,6 +357,7 @@ export async function POST(request: NextRequest) {
               type: "status",
               status: "researching",
               message: `Phase 2: Executing ${followupQueries.length} followup searches...`,
+            });
 
             const phase2Results = await executeSearchPhase(followupQueries, seenUrls, 20);
             allResults.push(...phase2Results);
@@ -397,6 +398,7 @@ export async function POST(request: NextRequest) {
               type: "status",
               status: "researching",
               message: `Phase 3: Executing ${deepDiveQueries.length} deep dive searches...`,
+            });
 
             const phase3Results = await executeSearchPhase(deepDiveQueries, seenUrls, 15);
             allResults.push(...phase3Results);

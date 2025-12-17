@@ -44,7 +44,10 @@ async function runExtraction(id: string, userId: string) {
   // Get document titles from Case.dev vault (documentIds are vault object IDs)
   const docMap = new Map<string, { id: string; title: string }>();
   try {
-    const vaultObjects = await caseClient.vaults.listObjects(vaultId);
+    const vaultObjects = (await caseClient.vaults.listObjects(vaultId)) as Array<{
+      id: string;
+      filename: string;
+    }>;
     for (const obj of vaultObjects) {
       if (documentIds.includes(obj.id)) {
         docMap.set(obj.id, { id: obj.id, title: obj.filename });

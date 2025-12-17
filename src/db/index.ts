@@ -12,12 +12,18 @@ import * as schema from "./schema";
  * No native dependencies - works in any Node.js environment
  */
 
-// Data directory for persistence
-const dataDir = path.join(process.cwd(), "data", "pgdata");
+// Check if running on Vercel (serverless) - use in-memory mode
+const isVercel = process.env.VERCEL === "1";
 
-// Ensure data directory exists
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// Data directory for persistence (only for local development)
+let dataDir: string | undefined;
+
+if (!isVercel) {
+  dataDir = path.join(process.cwd(), "data", "pgdata");
+  // Ensure data directory exists
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
 }
 
 // Cached database instance
@@ -46,10 +52,15 @@ export async function getDb() {
  * Initialize the database
  */
 async function initializeDb() {
-  console.log("[DB] Initializing PGlite database...");
+  if (isVercel) {
+    console.log("[DB] Initializing PGlite database (in-memory mode for Vercel)...");
+  } else {
+    console.log("[DB] Initializing PGlite database...");
+  }
 
-  // Create PGlite instance with persistence
-  pgliteInstance = new PGlite(dataDir);
+  // Create PGlite instance - in-memory for Vercel, persistent for local
+  // Pass undefined or empty string for in-memory mode
+  pgliteInstance = new PGlite(dataDir ?? "memory://");
 
   // Wait for it to be ready
   await pgliteInstance.waitReady;
